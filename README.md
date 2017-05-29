@@ -1,5 +1,5 @@
 # CmdTool
-Command line tool DRAFT
+Command line tool intended to execute console commands easily.
 
 #TODO
 - add test coverage metrics
