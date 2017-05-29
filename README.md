@@ -1,6 +1,7 @@
 # CmdTool
 Command line tool intended to execute console commands easily. 
-It object-oriented immutable wrapper on [zt-exec](https://github.com/zeroturnaround/zt-exec) which is used under the hood.
+
+Actually, it is object-oriented immutable wrapper for [zt-exec](https://github.com/zeroturnaround/zt-exec).
 
 #TODO
 - add test coverage metrics
