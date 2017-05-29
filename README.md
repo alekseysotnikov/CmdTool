@@ -6,6 +6,7 @@ It is a tiny, pure object-oriented and immutable wrapper of [zt-exec](https://gi
 Java 8+ required.
 
 #TODO
+- add list of features
 - add test coverage metrics
 - make reasonable percentage code coverage by unit tests 
 - configure maven build phase 
