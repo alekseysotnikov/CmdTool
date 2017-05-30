@@ -2,6 +2,9 @@ package com.enot.cmd;
 
 
 import com.enot.cmd.core.Cmd;
+import com.enot.cmd.core.Exec;
+import com.enot.cmd.ext.Listeners;
+import com.enot.cmd.ext.listeners.ReadOutputs;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -20,17 +23,24 @@ public class CmdTest {
         Path execDir = generateWorkDirPath();
         createDummyFile(execDir, uuid);
 
-        String output = new Cmd(execDir,"ls", ".")
-                .execute()
-                .outputUTF8();
+        Exec ls =
+                new Exec("ls", ".")
+                        .beforeStart(Listeners.readOutputs);
+        String output =
+                new Cmd(execDir, ls)
+                        .execute()
+                        .outputUTF8();
         assertEquals(uuid + "\n", output);
     }
 
     @Test
     public void oneLineCommand() throws Exception {
-        String output = new Cmd(generateWorkDirPath(), "echo Hello world")
-                .execute()
-                .outputUTF8();
+        Exec exec = new Exec("echo Hello world")
+                .beforeStart(Listeners.readOutputs);
+        String output =
+                new Cmd(generateWorkDirPath(), exec)
+                        .execute()
+                        .outputUTF8();
         assertEquals("Hello world\n", output);
     }
 
@@ -46,8 +56,7 @@ public class CmdTest {
     @Test
     public void deleteExecDir() throws Exception {
         Path execDir = generateWorkDirPath();
-        String fileName = UUID.randomUUID().toString();
-        createDummyFile(execDir, fileName);
+        createDummyFile(execDir, UUID.randomUUID().toString());
 
         new Cmd(execDir, "echo", "hello world")
                 .deleteExecDir(true)

@@ -16,48 +16,42 @@ import static com.enot.cmd.core.LambdaListenerAdapter.*;
  * Execution process representation
  */
 public class Exec {
-    private final long timeoutSec;
     private final Iterable<LambdaListenerAdapter> listeners;
     private final String[] command;
 
     public Exec(String... commandWithArgs) {
-        this(30, ImmutableList.of(), commandWithArgs);
+        this(ImmutableList.of(), commandWithArgs);
     }
 
-    public Exec(long timeoutSec, Iterable<LambdaListenerAdapter> listeners, String... command) {
-        this.timeoutSec = timeoutSec;
+    public Exec(Iterable<LambdaListenerAdapter> listeners, String... command) {
         this.listeners = listeners;
         this.command = command;
-    }
-
-    public Exec timeout(long sec) {
-        return new Exec(sec, listeners, command);
     }
 
     public Exec listeners(LambdaListenerAdapter... listeners) {
         if (listeners == null)
             return this;
-        return new Exec(timeoutSec, Iterables.concat(this.listeners, ImmutableList.copyOf(listeners)), command);
+        return new Exec(Iterables.concat(this.listeners, ImmutableList.copyOf(listeners)), command);
     }
 
     public Exec beforeStart(BeforeStart... lambdas) {
         List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Exec(timeoutSec, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
+        return new Exec(Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
     }
 
     public Exec afterStart(AfterStart... lambdas) {
         List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Exec(timeoutSec, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
+        return new Exec(Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
     }
 
     public Exec afterStop(AfterFinish... lambdas) {
         List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Exec(timeoutSec, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
+        return new Exec(Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
     }
 
     public Exec afterStop(AfterStop... lambdas) {
         List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Exec(timeoutSec, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
+        return new Exec(Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), command);
     }
 
     public ProcessExecutor executor() {
@@ -69,13 +63,6 @@ public class Exec {
         } else {
             executor = new ProcessExecutor().command(this.command);
         }
-        executor = executor
-                .redirectErrorAlsoTo(Slf4jStream.of(getClass()).asWarn())
-                .redirectOutputAlsoTo(Slf4jStream.of(getClass()).asInfo())
-                .redirectErrorStream(true)
-                .readOutput(true)
-                .timeout(timeoutSec, TimeUnit.SECONDS)
-                .destroyOnExit();
         for (LambdaListenerAdapter listener : listeners) {
             executor.addListener(listener);
         }
