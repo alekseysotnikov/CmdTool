@@ -1,7 +1,5 @@
 # CmdTool
-Command line tool intended to execute console commands easily. 
-
-It is a tiny, pure object-oriented and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features while executing. All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are firmly keeping to be open for your needs.
+Tiny, pure object-oriented and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around process execution. All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are still available for usage.
 
 Java 8+ required.
 
