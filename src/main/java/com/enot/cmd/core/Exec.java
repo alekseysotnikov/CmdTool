@@ -3,11 +3,9 @@ package com.enot.cmd.core;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.zeroturnaround.exec.ProcessExecutor;
-import org.zeroturnaround.exec.stream.slf4j.Slf4jStream;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.enot.cmd.core.LambdaListenerAdapter.*;
@@ -55,14 +53,7 @@ public class Exec {
     }
 
     public ProcessExecutor executor() {
-        ProcessExecutor executor;
-        if (command.length == 1) {
-            executor = new ProcessExecutor().commandSplit(command[0]);
-        } else if (command.length == 2) {
-            executor = new ProcessExecutor().commandSplit(String.format("%s %s", command[0], command[1]));
-        } else {
-            executor = new ProcessExecutor().command(this.command);
-        }
+        ProcessExecutor executor = new ProcessExecutor().command(this.command);
         for (LambdaListenerAdapter listener : listeners) {
             executor.addListener(listener);
         }

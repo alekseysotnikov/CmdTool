@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,18 +32,6 @@ public class CmdTest {
                         .execute()
                         .outputUTF8();
         assertEquals(uuid + "\n", output);
-    }
-
-    @Test
-    public void oneLineCommand() throws Exception {
-        Exec exec =
-                new Exec("echo Hello world")
-                        .beforeStart(Listeners.readOutputs);
-        String output =
-                new Cmd(generateWorkDirPath(), exec)
-                        .execute()
-                        .outputUTF8();
-        assertEquals("Hello world\n", output);
     }
 
     @Test
