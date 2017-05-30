@@ -1,6 +1,7 @@
 package com.enot.cmd;
 
 import com.enot.cmd.core.Exec;
+import com.enot.cmd.ext.Listeners;
 import com.enot.cmd.ext.listeners.ReadOutputs;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
@@ -17,11 +18,12 @@ public class ExecTest {
     @Test
     public void output() throws IOException, InterruptedException, TimeoutException {
         final String str = "Hello";
-        String result = new Exec("echo", str)
-                .beforeStart(new ReadOutputs())
-                .executor()
-                .execute()
-                .outputUTF8();
+        String result =
+                new Exec("echo", str)
+                        .beforeStart(Listeners.readOutputs)
+                        .executor()
+                        .execute()
+                        .outputUTF8();
 
         assertEquals(str + "\n", result);
     }
@@ -37,7 +39,6 @@ public class ExecTest {
                         lines.add(line);
                     }
                 }))
-
                 .executor()
                 .execute();
 

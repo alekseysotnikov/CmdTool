@@ -35,8 +35,9 @@ public class CmdTest {
 
     @Test
     public void oneLineCommand() throws Exception {
-        Exec exec = new Exec("echo Hello world")
-                .beforeStart(Listeners.readOutputs);
+        Exec exec =
+                new Exec("echo Hello world")
+                        .beforeStart(Listeners.readOutputs);
         String output =
                 new Cmd(generateWorkDirPath(), exec)
                         .execute()
