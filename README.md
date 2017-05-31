@@ -19,7 +19,4 @@ System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); // Hell
 ```
 
 ### TODO
-- add test coverage metrics
-- make reasonable percentage code coverage by unit tests 
-- configure maven build phase 
 - configure Travis CI
