@@ -26,6 +26,10 @@ public class Cmd {
     private final boolean deleteExecDir;
     private final String outputFileName;
 
+    public Cmd(String... command) {
+        this(Paths.get("."), new Exec(command));
+    }
+
     public Cmd(Path execDir, String... command) {
         this(execDir, new Exec(command));
     }
