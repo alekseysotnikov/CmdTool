@@ -17,6 +17,8 @@ System.out.print(output); //Hello
 ```
 > save output as a file
 ```java
+import com.google.common.io.Files;
+...
 new Cmd("./", "echo", "Hello")
         .outputFileName("output.txt")
         .execute();
