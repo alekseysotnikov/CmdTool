@@ -7,6 +7,15 @@ Java 8+ required.
 - Save text output of process as a file
 - Create or delete execution directory before or after process execution
 
+### Examples
+> echo Hello
+```java
+String output = new Cmd("echo", "Hello")
+                        .execute()
+                        .outputUTF8();
+System.out.print(output); //Hello
+```
+
 ### TODO
 - add test coverage metrics
 - make reasonable percentage code coverage by unit tests 
