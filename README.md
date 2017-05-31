@@ -21,7 +21,7 @@ new Cmd("./", "echo", "Hello")
         .outputFileName("output.txt")
         .execute();
 
-File file = new File("./", "\"output.txt\"");
+File file = new File("./", "output.txt");
 System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); // Hello
 ```
 
