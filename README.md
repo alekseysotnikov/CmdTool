@@ -3,11 +3,11 @@ Tiny, pure object-oriented and immutable wrapper of [zt-exec](https://github.com
 
 Java 8+ required.
 
-# Features
+### Features
 - Save process output into a file
 - Create or delete execution directory before or after process execution
 
-#TODO
+### TODO
 - add test coverage metrics
 - make reasonable percentage code coverage by unit tests 
 - configure maven build phase 
