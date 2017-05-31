@@ -15,6 +15,15 @@ String output = new Cmd("echo", "Hello")
                         .outputUTF8();
 System.out.print(output); //Hello
 ```
+> save output as a file
+```java
+new Cmd("./", "echo", "Hello")
+        .outputFileName("output.txt")
+        .execute();
+
+File file = new File("./", "\"output.txt\"");
+System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); // Hello
+```
 
 ### TODO
 - add test coverage metrics
