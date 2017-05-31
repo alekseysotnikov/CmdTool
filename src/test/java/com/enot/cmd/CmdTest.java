@@ -4,17 +4,15 @@ package com.enot.cmd;
 import com.enot.cmd.core.Cmd;
 import com.enot.cmd.core.Exec;
 import com.enot.cmd.ext.Listeners;
-import com.enot.cmd.ext.listeners.ReadOutputs;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 public class CmdTest {
 

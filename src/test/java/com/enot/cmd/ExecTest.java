@@ -2,16 +2,15 @@ package com.enot.cmd;
 
 import com.enot.cmd.core.Exec;
 import com.enot.cmd.ext.Listeners;
-import com.enot.cmd.ext.listeners.ReadOutputs;
 import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.zeroturnaround.exec.stream.LogOutputStream;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.*;
 
 public class ExecTest {
 

@@ -27,7 +27,7 @@ public class Cmd {
     private final String outputFileName;
 
     public Cmd(String... command) {
-        this(Paths.get("."), new Exec(command));
+        this(Paths.get("./"), new Exec(command));
     }
 
     public Cmd(Path execDir, String... command) {
