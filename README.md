@@ -10,7 +10,7 @@ Java 8+ required.
 ### Examples
 > Save text output of the process into a file, even if the process stopped during the execution
 ```java
-new Cmd("./", "echo", "Hello")
+new Cmd(Paths.get("./"), "echo", "Hello")
         .outputFileName("output.txt")
         .execute();
 
