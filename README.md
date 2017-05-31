@@ -8,13 +8,6 @@ Java 8+ required.
 - Create or delete execution directory before or after process execution
 
 ### Examples
-> echo Hello
-```java
-String output = new Cmd("echo", "Hello")
-                        .execute()
-                        .outputUTF8();
-System.out.print(output); //Hello
-```
 > Save text output of the process into a file, even if the process stopped during the execution
 ```java
 new Cmd("./", "echo", "Hello")
