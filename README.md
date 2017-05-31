@@ -4,7 +4,7 @@ Tiny, pure object-oriented and immutable wrapper of [zt-exec](https://github.com
 Java 8+ required.
 
 ### Features
-- Save process output into a file
+- Save text output of process as a file
 - Create or delete execution directory before or after process execution
 
 ### TODO
