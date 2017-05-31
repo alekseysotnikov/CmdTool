@@ -15,7 +15,7 @@ String output = new Cmd("echo", "Hello")
                         .outputUTF8();
 System.out.print(output); //Hello
 ```
-> save output as a file
+> save output as a file, even in case of process failed during the execution
 ```java
 new Cmd("./", "echo", "Hello")
         .outputFileName("output.txt")
