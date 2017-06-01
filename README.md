@@ -4,7 +4,7 @@ Tiny, pure object-oriented and immutable wrapper of [zt-exec](https://github.com
 Java 8+ required.
 
 ### Motivation
-When we call external programs from Java, we certainly need to harvest the output files and/or console stream. It is ok, but what if we have thousands of calls? Some of them produces files we need, but another one not. So, we have to make a cleanup.
+When we call external programs from Java, we certainly need to harvest the output files and/or output stream. It is ok, but what if we have thousands of calls? Some of them produces files we need, but another one not. So, we have to make a cleanup.
 
 This library solves this small problem and intended to process each program call inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution. 
 
