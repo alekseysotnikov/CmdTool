@@ -13,7 +13,7 @@ This library solves this small problem and intended to process each program call
 - Create or delete execution directory before or after process execution
 
 ### Examples
-> Save text output of the process into a file, even if the process stopped during the execution
+> Save output stream of the process into a file, even if the process stopped unexpected
 ```java
 new Cmd(Paths.get("./"), "echo", "Hello")
         .outputFileName("output.txt")
