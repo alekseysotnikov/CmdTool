@@ -21,7 +21,7 @@ String output = new Exec("echo", "Hello")
                 .executor()
                 .execute()
                 .outputUTF8();
-//> Hello
+System.out.println(output); //Hello
 ````
 > Execute script in Shell
 ````java
@@ -31,7 +31,7 @@ String output = new Script("s='Hello'; echo $s;")
                     .executor()
                     .execute()
                     .outputUTF8(); 
-//> Hello
+System.out.println(output); //Hello
 ````
 > Save output stream of the process into a file, even if process stopped unexpectedly
 ```java
@@ -49,6 +49,3 @@ new Cmd(execPath, "echo", "Hello")
      .deleteEmptyExecDir(true)
      .execute();
 ````
-
-### TODO
-- parsing one line command with arguments
