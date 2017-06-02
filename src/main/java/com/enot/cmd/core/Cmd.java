@@ -20,26 +20,22 @@ import java.util.concurrent.TimeoutException;
 public class Cmd {
     private static final Logger LOG = LoggerFactory.getLogger(Cmd.class.getName());
 
-    private final Path execDir;
+    private final Path path;
     private final Exec exec;
     private final boolean deleteEmptyExecDir;
     private final boolean deleteExecDir;
     private final String outputFileName;
 
-    public Cmd(String... command) {
-        this(Paths.get("./"), new Exec(command));
+    public Cmd(Exec exec) {
+        this(Paths.get("./"), exec);
     }
 
-    public Cmd(Path execDir, String... command) {
-        this(execDir, new Exec(command));
+    public Cmd(Path path, Exec exec) {
+        this(path, exec, false, false, "");
     }
 
-    public Cmd(Path execDir, Exec exec) {
-        this(execDir, exec, false, false, "");
-    }
-
-    public Cmd(Path execDir, Exec exec, boolean deleteEmptyExecDir, boolean deleteExecDir, String outputFileName) {
-        this.execDir = execDir;
+    public Cmd(Path path, Exec exec, boolean deleteEmptyExecDir, boolean deleteExecDir, String outputFileName) {
+        this.path = path;
         this.exec = exec;
         this.deleteEmptyExecDir = deleteEmptyExecDir;
         this.deleteExecDir = deleteExecDir;
@@ -57,15 +53,15 @@ public class Cmd {
     }
 
     public Cmd deleteEmptyExecDir(boolean deleteEmptyDir) {
-        return new Cmd(execDir, exec, deleteEmptyDir, deleteExecDir, outputFileName);
+        return new Cmd(path, exec, deleteEmptyDir, deleteExecDir, outputFileName);
     }
 
     public Cmd deleteExecDir(boolean deleteExecDir) {
-        return new Cmd(execDir, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
+        return new Cmd(path, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
     }
 
     public Cmd outputFileName(String outputFileName) {
-        return new Cmd(execDir, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
+        return new Cmd(path, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
     }
 
     /**
@@ -79,13 +75,13 @@ public class Cmd {
      * @throws InterruptedException
      */
     public ProcessResult execute() throws IOException, TimeoutException, InterruptedException {
-        File dir = execDir.toFile();
+        File dir = path.toFile();
         if (!dir.exists() && !dir.mkdirs()) {
-            throw new IOException("Can not create execution dir by path: " + execDir.toString());
+            throw new IOException("Can not create execution dir by path: " + path.toString());
         }
         ProcessResult result;
         final boolean isSaveOutputToFile = !deleteExecDir && !Strings.isNullOrEmpty(outputFileName);
-        try (OutputStream fileOutput = (isSaveOutputToFile ? Files.newOutputStream(Paths.get(execDir.toString(), outputFileName), StandardOpenOption.CREATE) : null)) {
+        try (OutputStream fileOutput = (isSaveOutputToFile ? Files.newOutputStream(Paths.get(path.toString(), outputFileName), StandardOpenOption.CREATE) : null)) {
             BeforeStart beforeStart = e -> {
                 if (isSaveOutputToFile) {
                     e.redirectOutputAlsoTo(fileOutput);
@@ -97,11 +93,11 @@ public class Cmd {
             AfterStop afterStop = p -> {
                 if (this.deleteExecDir) {
                     try {
-                        FileUtils.deleteDirectory(execDir.toFile());
+                        FileUtils.deleteDirectory(path.toFile());
                     } catch (IOException e) {
                         LOG.debug(e.getMessage(), e);
                     }
-                } else if (deleteEmptyExecDir && execDir.toFile().delete()) {
+                } else if (deleteEmptyExecDir && path.toFile().delete()) {
                     LOG.debug("Execution directory [%s] has not been deleted, because either not empty or by other reasons");
                 }
             };

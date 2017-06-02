@@ -32,11 +32,11 @@ public class CmdTest {
     public void createExecDir() throws Exception {
         Path path = generateRandomPath();
         assertFalse(path.toFile().exists());
-        new Cmd(path, "echo", "hello world")
+        new Cmd(path, new Exec("echo", "hello world"))
                 .execute();
         assertTrue(path.toFile().exists());
         Path execPath = Paths.get("./", UUID.randomUUID().toString());
-        new Cmd(execPath, "echo", "Hello")
+        new Cmd(execPath, new Exec("echo", "Hello"))
                 .deleteEmptyExecDir(true)
                 .execute();
     }
@@ -46,7 +46,7 @@ public class CmdTest {
         Path execDir = generateRandomPath();
         createDummyFile(execDir, UUID.randomUUID().toString());
 
-        new Cmd(execDir, "echo", "hello world")
+        new Cmd(execDir, new Exec("echo", "hello world"))
                 .deleteExecDir(true)
                 .execute();
         assertFalse(execDir.toFile().exists());
@@ -55,7 +55,7 @@ public class CmdTest {
     @Test
     public void deleteEmptyExecDir() throws Exception {
         Path execDir = generateRandomPath();
-        new Cmd(execDir, "echo", "Hello")
+        new Cmd(execDir, new Exec("echo", "Hello"))
                 .deleteEmptyExecDir(true)
                 .execute();
         assertFalse(execDir.toFile().exists());
@@ -65,7 +65,7 @@ public class CmdTest {
     public void outputFile() throws Exception {
         Path execDir = generateRandomPath();
         String outputFileName = "test.output";
-        new Cmd(execDir, "echo", "hello world")
+        new Cmd(execDir, new Exec("echo", "hello world"))
                 .outputFileName(outputFileName)
                 .execute();
         assertTrue(Paths.get(execDir.toString(), outputFileName).toFile().exists());
