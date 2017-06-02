@@ -1,9 +1,9 @@
 package com.enot.cmd;
 
-
 import com.enot.cmd.core.Cmd;
 import com.enot.cmd.core.Exec;
 import com.enot.cmd.ext.Listeners;
+import com.google.common.io.Files;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,31 +19,32 @@ public class CmdTest {
     @Test
     public void executeCommand() throws Exception {
         String uuid = UUID.randomUUID().toString();
-        Path execDir = generateWorkDirPath();
+        Path execDir = createWorkDir();
         createDummyFile(execDir, uuid);
 
-        Exec ls =
-                new Exec("ls", ".")
-                        .beforeStart(Listeners.readOutputs);
-        String output =
-                new Cmd(execDir, ls)
-                        .execute()
-                        .outputUTF8();
+        String output = new Cmd(execDir, new Exec("ls", ".")
+                .beforeStart(Listeners.readOutputs))
+                .execute()
+                .outputUTF8();
         assertEquals(uuid + "\n", output);
     }
 
     @Test
     public void createExecDir() throws Exception {
-        Path path = generateWorkDirPath();
+        Path path = createWorkDir();
         assertFalse(path.toFile().exists());
         new Cmd(path, "echo", "hello world")
                 .execute();
         assertTrue(path.toFile().exists());
+        Path execPath = Paths.get("./", UUID.randomUUID().toString());
+        new Cmd(execPath, "echo", "Hello")
+                .deleteEmptyExecDir(true)
+                .execute();
     }
 
     @Test
     public void deleteExecDir() throws Exception {
-        Path execDir = generateWorkDirPath();
+        Path execDir = createWorkDir();
         createDummyFile(execDir, UUID.randomUUID().toString());
 
         new Cmd(execDir, "echo", "hello world")
@@ -54,8 +55,8 @@ public class CmdTest {
 
     @Test
     public void deleteEmptyExecDir() throws Exception {
-        Path execDir = generateWorkDirPath();
-        new Cmd(execDir, "echo", "hello world")
+        Path execDir = createWorkDir();
+        new Cmd(execDir, "echo", "Hello")
                 .deleteEmptyExecDir(true)
                 .execute();
         assertFalse(execDir.toFile().exists());
@@ -63,7 +64,7 @@ public class CmdTest {
 
     @Test
     public void outputFile() throws Exception {
-        Path execDir = generateWorkDirPath();
+        Path execDir = createWorkDir();
         String outputFileName = "test.output";
         new Cmd(execDir, "echo", "hello world")
                 .outputFileName(outputFileName)
@@ -78,7 +79,7 @@ public class CmdTest {
         assertTrue(dummyFile.exists());
     }
 
-    private Path generateWorkDirPath() {
+    private Path createWorkDir() {
         return Paths.get("./target/", UUID.randomUUID().toString());
     }
 }

@@ -35,7 +35,7 @@ public class Cmd {
     }
 
     public Cmd(Path execDir, Exec exec) {
-        this(execDir, exec, false, false, null);
+        this(execDir, exec, false, false, "");
     }
 
     public Cmd(Path execDir, Exec exec, boolean deleteEmptyExecDir, boolean deleteExecDir, String outputFileName) {
