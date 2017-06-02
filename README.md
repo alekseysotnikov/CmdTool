@@ -9,8 +9,9 @@ When we call external programs from Java, we certainly need to harvest the outpu
 This library solves this small problem and intended to process each program call inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after finish and after stop process). 
 
 ### Features
-- Save text output of the process into a file
 - Create or delete execution directory before or after process execution
+- Save text output of the process into a file
+- Execute script or command in Shell
 
 ### Examples
 > Save output stream of the process into a file, even if process stopped unexpectedly
@@ -28,6 +29,16 @@ Path execPath = Paths.get("./", UUID.randomUUID().toString());
 new Cmd(execPath, "echo", "Hello")
      .deleteEmptyExecDir(true)
      .execute();
+````
+> Execute script in Shell
+````java
+new Script("s='Hello'; echo $s;")
+           .toExec()
+           .beforeStart(e -> e.readOutput(true))
+           .executor()
+           .execute()
+           .outputUTF8(); 
+//> Hello
 ````
 
 ### TODO
