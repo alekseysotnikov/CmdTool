@@ -17,8 +17,8 @@ This library solves this small problem and intended to process each program call
 > Execute command
 ````java
 String output = new Exec("echo", "Hello")
-                .beforeStart(e -> e.readOutput(true))
                 .executor()
+                .readOutput(true)
                 .execute()
                 .outputUTF8();
 System.out.println(output); //Hello
@@ -27,8 +27,8 @@ System.out.println(output); //Hello
 ````java
 String output = new Script("s='Hello'; echo $s;")
                     .toExec()
-                    .beforeStart(e -> e.readOutput(true))
                     .executor()
+                    .readOutput(true)
                     .execute()
                     .outputUTF8(); 
 System.out.println(output); //Hello
