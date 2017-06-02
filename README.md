@@ -31,4 +31,4 @@ new Cmd(execPath, "echo", "Hello")
 ````
 
 ### TODO
-- parsing one line command
+- parsing one line command with arguments
