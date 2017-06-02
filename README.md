@@ -31,4 +31,4 @@ new Cmd(execPath, "echo", "Hello")
 ````
 
 ### TODO
-- configure Travis CI
+- parsing one line command
