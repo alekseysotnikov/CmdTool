@@ -14,6 +14,25 @@ This library solves this small problem and intended to process each program call
 - Execute script or command in Shell
 
 ### Examples
+> Execute command
+````java
+String output = new Exec("echo", "Hello")
+                .beforeStart(e -> e.readOutput(true))
+                .executor()
+                .execute()
+                .outputUTF8();
+//> Hello
+````
+> Execute script in Shell
+````java
+String output = new Script("s='Hello'; echo $s;")
+                    .toExec()
+                    .beforeStart(e -> e.readOutput(true))
+                    .executor()
+                    .execute()
+                    .outputUTF8(); 
+//> Hello
+````
 > Save output stream of the process into a file, even if process stopped unexpectedly
 ```java
 new Cmd(Paths.get("./"), "echo", "Hello")
@@ -29,16 +48,6 @@ Path execPath = Paths.get("./", UUID.randomUUID().toString());
 new Cmd(execPath, "echo", "Hello")
      .deleteEmptyExecDir(true)
      .execute();
-````
-> Execute script in Shell
-````java
-new Script("s='Hello'; echo $s;")
-           .toExec()
-           .beforeStart(e -> e.readOutput(true))
-           .executor()
-           .execute()
-           .outputUTF8(); 
-//> Hello
 ````
 
 ### TODO
