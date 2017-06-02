@@ -33,7 +33,7 @@ String output = new Script("s='Hello'; echo $s;")
                     .outputUTF8(); 
 System.out.println(output); //Hello
 ````
-> Save output stream of the process into a file, even if process stopped unexpectedly
+> Save output stream of a process into a file, even if the process stopped unexpectedly
 ```java
 new Cmd(Paths.get("./"), "echo", "Hello")
         .outputFileName("output.txt")
