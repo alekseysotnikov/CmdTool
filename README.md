@@ -35,7 +35,7 @@ System.out.println(output); //Hello
 ````
 > Save output stream of a process into a file, even if the process stopped unexpectedly
 ```java
-new Cmd(Paths.get("./"), "echo", "Hello")
+new Cmd(Paths.get("./"), new Exec("echo", "Hello"))
         .outputFileName("output.txt")
         .execute();
 
@@ -45,7 +45,7 @@ System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); // Hell
 > Delete empty execution directory after process finished 
 ````java
 Path execPath = Paths.get("./", UUID.randomUUID().toString());
-new Cmd(execPath, "echo", "Hello")
+new Cmd(execPath, new Exec("echo", "Hello"))
      .deleteEmptyExecDir(true)
      .execute();
 ````
