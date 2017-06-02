@@ -3,7 +3,6 @@ package com.enot.cmd;
 import com.enot.cmd.core.Cmd;
 import com.enot.cmd.core.Exec;
 import com.enot.cmd.ext.Listeners;
-import com.google.common.io.Files;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,7 +18,7 @@ public class CmdTest {
     @Test
     public void executeCommand() throws Exception {
         String uuid = UUID.randomUUID().toString();
-        Path execDir = createWorkDir();
+        Path execDir = generateRandomPath();
         createDummyFile(execDir, uuid);
 
         String output = new Cmd(execDir, new Exec("ls", ".")
@@ -31,7 +30,7 @@ public class CmdTest {
 
     @Test
     public void createExecDir() throws Exception {
-        Path path = createWorkDir();
+        Path path = generateRandomPath();
         assertFalse(path.toFile().exists());
         new Cmd(path, "echo", "hello world")
                 .execute();
@@ -44,7 +43,7 @@ public class CmdTest {
 
     @Test
     public void deleteExecDir() throws Exception {
-        Path execDir = createWorkDir();
+        Path execDir = generateRandomPath();
         createDummyFile(execDir, UUID.randomUUID().toString());
 
         new Cmd(execDir, "echo", "hello world")
@@ -55,7 +54,7 @@ public class CmdTest {
 
     @Test
     public void deleteEmptyExecDir() throws Exception {
-        Path execDir = createWorkDir();
+        Path execDir = generateRandomPath();
         new Cmd(execDir, "echo", "Hello")
                 .deleteEmptyExecDir(true)
                 .execute();
@@ -64,7 +63,7 @@ public class CmdTest {
 
     @Test
     public void outputFile() throws Exception {
-        Path execDir = createWorkDir();
+        Path execDir = generateRandomPath();
         String outputFileName = "test.output";
         new Cmd(execDir, "echo", "hello world")
                 .outputFileName(outputFileName)
@@ -79,7 +78,7 @@ public class CmdTest {
         assertTrue(dummyFile.exists());
     }
 
-    private Path createWorkDir() {
+    private Path generateRandomPath() {
         return Paths.get("./target/", UUID.randomUUID().toString());
     }
 }
