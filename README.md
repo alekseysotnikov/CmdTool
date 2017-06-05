@@ -37,7 +37,7 @@ System.out.println(output);
 
 // output> Hello
 ````
-> Save output stream of a process into a file, even if the process stopped unexpectedly
+> Save output stream into a file, even if the process stopped unexpectedly
 ```java
 new Cmd(new ProcessExecutor("echo", "Hello")
                 .directory(new File("./")))
@@ -64,6 +64,7 @@ new Cmd(new ProcessExecutor("echo", "hello world")
         })
         .deleteExecDir(true)
         .execute();
+//execution directory doesn't exists here
 System.out.println(execDir.exists()); //false
 
 //output> true
