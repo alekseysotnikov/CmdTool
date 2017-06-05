@@ -52,21 +52,20 @@ System.out.println(Files.readFirstLine(file, Charset.defaultCharset()));
 > Create execution directory before and delete after execution
 ````java
 File execDir = new File("./", "foo");
-        String outputFileName = "output.txt";
-        new Cmd(new ProcessExecutor("echo", "hello world")
-                .readOutput(true)
-                .directory(execDir))
-                .outputFileName(outputFileName)
-                .afterStop((process)-> {
-                    //execution directory and process result is not deleted yet here
-                    File outputFile = new File(execDir, outputFileName);
-                    System.out.println(outputFile.exists()); //true
-                })
-                .deleteExecDir(true)
-                .execute();
+String outputFileName = "output.txt";
+new Cmd(new ProcessExecutor("echo", "hello world")
+        .readOutput(true)
+        .directory(execDir))
+        .outputFileName(outputFileName)
+        .afterStop((process)-> {
+            //execution directory and process result is ready for usage here, and not deleted yet
+            File outputFile = new File(execDir, outputFileName);
+            System.out.println(outputFile.exists()); //true
+        })
+        .deleteExecDir(true)
+        .execute();
+System.out.println(execDir.exists()); //false
 
-        System.out.println(execDir.exists()); //false
-
-        //output> true
-        //output> false
+//output> true
+//output> false
 ````
