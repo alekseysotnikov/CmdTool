@@ -64,7 +64,7 @@ public class Cmd {
         return new Cmd(executor, deleteExecDir, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), script);
     }
 
-    public Cmd afterStop(AfterFinish... lambdas) {
+    public Cmd afterFinish(AfterFinish... lambdas) {
         List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
         return new Cmd(executor, deleteExecDir, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), script);
     }

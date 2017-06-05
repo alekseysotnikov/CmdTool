@@ -18,9 +18,8 @@ This library solves this small problem and intended to process each command call
 ### Examples
 > Execute command
 ````java
-String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
+String output = new Cmd(new ProcessExecutor("echo", "Hello")
                      .readOutput(true))
-                     .script(true)
                      .execute()
                      .outputUTF8()
 System.out.println(output);
@@ -49,4 +48,25 @@ new Cmd(new ProcessExecutor("echo", "Hello")
 System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); 
 
 // output> Hello
+````
+> Create execution directory before and delete after execution
+````java
+File execDir = new File("./", "foo");
+        String outputFileName = "output.txt";
+        new Cmd(new ProcessExecutor("echo", "hello world")
+                .readOutput(true)
+                .directory(execDir))
+                .outputFileName(outputFileName)
+                .afterStop((process)-> {
+                    //execution directory and process result is not deleted yet here
+                    File outputFile = new File(execDir, outputFileName);
+                    System.out.println(outputFile.exists()); //true
+                })
+                .deleteExecDir(true)
+                .execute();
+
+        System.out.println(execDir.exists()); //false
+
+        //output> true
+        //output> false
 ````
