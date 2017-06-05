@@ -3,6 +3,8 @@ Tiny, pure object-oriented and immutable wrapper of [zt-exec](https://github.com
 
 Java 8+ required.
 
+**Note**: it is a very early alpha version, the API may change.
+
 ### Motivation
 When we call external programs from Java, we certainly need to harvest the output files and/or output stream. It is ok, but what if we have thousands of calls? Some of them produces files we need, but another one not. So, we have to make a cleanup.
 
