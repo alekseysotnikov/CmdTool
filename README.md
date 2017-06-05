@@ -24,10 +24,9 @@ String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
                      .execute()
                      .outputUTF8()
 System.out.println(output);
+
+// output> Hello
 ````
-```
-output> Hello
-```
 > Execute script in Shell
 ````java
 String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
@@ -36,10 +35,9 @@ String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
                      .execute()
                      .outputUTF8();
 System.out.println(output);
+
+// output> Hello
 ````
-```
-output> Hello
-```
 > Save output stream of a process into a file, even if the process stopped unexpectedly
 ```java
 new Cmd(new ProcessExecutor("echo", "Hello")
@@ -48,8 +46,7 @@ new Cmd(new ProcessExecutor("echo", "Hello")
                 .execute();
 
         File file = new File("./", "output.txt");
-        System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); 
-```
-```
-output> Hello
-```
+System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); 
+
+// output> Hello
+````
