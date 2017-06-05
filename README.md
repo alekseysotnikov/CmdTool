@@ -18,15 +18,15 @@ This library solves this small problem and intended to process each command call
 ### Examples
 > Execute command
 ````java
-String output = new Cmd(new ProcessExecutor("echo", "Hello")
-                     .readOutput(true))
-                     .execute()
-                     .outputUTF8()
-System.out.println(output);
-
-// output> Hello
+new Cmd("echo", "Hello").execute();
 ````
-> Execute script in Shell
+> Execute script in a Shell
+````java
+new Cmd("s='Hello'; echo $s;")
+      .script(true)
+      .execute();
+````
+> Execute script and read output
 ````java
 String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
                      .readOutput(true))
