@@ -44,12 +44,12 @@ new Cmd(new ProcessExecutor("echo", "Hello")
                 .outputFileName("output.txt")
                 .execute();
 
-        File file = new File("./", "output.txt");
+File file = new File("./", "output.txt");
 System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); 
 
 // output> Hello
 ````
-> Create execution directory before and delete after execution
+> Create execution directory before execution and delete after finish
 ````java
 File execDir = new File("./", "foo");
 String outputFileName = "output.txt";
