@@ -8,7 +8,7 @@ Java 8+ required.
 ### Motivation
 When we call external programs from Java, we certainly need to harvest the output files and/or output stream. It is ok, but what if we have thousands of calls? Some of them produces files we need, but another one not. So, we have to make a cleanup.
 
-This library solves this small problem and intended to process each program call inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after finish and after stop process). 
+This library solves this small problem and intended to process each command call inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after finish and after stop process). 
 
 ### Features
 - Execute command and script
@@ -18,36 +18,38 @@ This library solves this small problem and intended to process each program call
 ### Examples
 > Execute command
 ````java
-String output = new Exec("echo", "Hello")
-                .executor()
-                .readOutput(true)
-                .execute()
-                .outputUTF8();
-System.out.println(output); //Hello
+String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
+                     .readOutput(true))
+                     .script(true)
+                     .execute()
+                     .outputUTF8()
+System.out.println(output);
 ````
+```
+output> Hello
+```
 > Execute script in Shell
 ````java
-String output = new Script("s='Hello'; echo $s;")
-                    .toExec()
-                    .executor()
-                    .readOutput(true)
-                    .execute()
-                    .outputUTF8(); 
-System.out.println(output); //Hello
+String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
+                     .readOutput(true))
+                     .script(true)
+                     .execute()
+                     .outputUTF8();
+System.out.println(output);
 ````
+```
+output> Hello
+```
 > Save output stream of a process into a file, even if the process stopped unexpectedly
 ```java
-new Cmd(Paths.get("./"), new Exec("echo", "Hello"))
-        .outputFileName("output.txt")
-        .execute();
+new Cmd(new ProcessExecutor("echo", "Hello")
+                .directory(new File("./")))
+                .outputFileName("output.txt")
+                .execute();
 
-File file = new File("./", "output.txt");
-System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); // Hello
+        File file = new File("./", "output.txt");
+        System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); 
 ```
-> Delete empty execution directory after process finished 
-````java
-Path execPath = Paths.get("./", UUID.randomUUID().toString());
-new Cmd(execPath, new Exec("echo", "Hello"))
-     .deleteEmptyExecDir(true)
-     .execute();
-````
+```
+output> Hello
+```

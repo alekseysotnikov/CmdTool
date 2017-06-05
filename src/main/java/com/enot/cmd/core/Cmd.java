@@ -1,18 +1,26 @@
 package com.enot.cmd.core;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
-
-import static com.enot.cmd.core.LambdaListenerAdapter.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
+import static com.enot.cmd.core.LambdaListenerAdapter.*;
 
 /**
  * Command line representation with the additional features around a process execution
@@ -20,54 +28,68 @@ import java.util.concurrent.TimeoutException;
 public class Cmd {
     private static final Logger LOG = LoggerFactory.getLogger(Cmd.class.getName());
 
-    private final Path path;
-    private final Exec exec;
-    private final boolean deleteEmptyExecDir;
+    private final ProcessExecutor executor;
     private final boolean deleteExecDir;
     private final String outputFileName;
+    private final Iterable<LambdaListenerAdapter> listeners;
+    private final boolean script;
 
-    public Cmd(Exec exec) {
-        this(Paths.get("./"), exec);
+    public Cmd(String... command) {
+        this(new ProcessExecutor(command));
     }
 
-    public Cmd(Path path, Exec exec) {
-        this(path, exec, false, false, "");
+    public Cmd(ProcessExecutor executor) {
+        this(executor, false, "", ImmutableList.of(), false);
     }
 
-    public Cmd(Path path, Exec exec, boolean deleteEmptyExecDir, boolean deleteExecDir, String outputFileName) {
-        this.path = path;
-        this.exec = exec;
-        this.deleteEmptyExecDir = deleteEmptyExecDir;
+    public Cmd(ProcessExecutor executor, boolean deleteExecDir, String outputFileName, Iterable<LambdaListenerAdapter> listeners, boolean script) {
+        this.executor = executor;
         this.deleteExecDir = deleteExecDir;
         this.outputFileName = outputFileName;
+        this.listeners = listeners;
+        this.script = script;
     }
 
-    /**
-     * Provide execution directory path
-     *
-     * @param path execution directory path
-     * @return {@link Cmd}
-     */
-    public Cmd path(Path path) {
-        return new Cmd(path, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
+    public Cmd listeners(LambdaListenerAdapter... listeners) {
+        return new Cmd(executor, deleteExecDir, outputFileName, Iterables.concat(this.listeners, ImmutableList.copyOf(listeners)), script);
     }
 
-    public Cmd deleteEmptyExecDir(boolean deleteEmptyDir) {
-        return new Cmd(path, exec, deleteEmptyDir, deleteExecDir, outputFileName);
+    public Cmd beforeStart(BeforeStart... lambdas) {
+        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
+        return new Cmd(executor, deleteExecDir, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), script);
+    }
+
+    public Cmd afterStart(AfterStart... lambdas) {
+        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
+        return new Cmd(executor, deleteExecDir, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), script);
+    }
+
+    public Cmd afterStop(AfterFinish... lambdas) {
+        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
+        return new Cmd(executor, deleteExecDir, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), script);
+    }
+
+    public Cmd afterStop(AfterStop... lambdas) {
+        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
+        return new Cmd(executor, deleteExecDir, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)), script);
     }
 
     public Cmd deleteExecDir(boolean deleteExecDir) {
-        return new Cmd(path, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
+        return new Cmd(executor, deleteExecDir, outputFileName, listeners, script);
     }
 
     public Cmd outputFileName(String outputFileName) {
-        return new Cmd(path, exec, deleteEmptyExecDir, deleteExecDir, outputFileName);
+        return new Cmd(executor, deleteExecDir, outputFileName, listeners, script);
+    }
+
+    public Cmd script(boolean script) {
+        return new Cmd(executor, deleteExecDir, outputFileName, listeners, script);
     }
 
     /**
      * Execute command.
      * Before execution: creates execution directory if it does not exists.
-     * After execution: if deleteEmptyExecDir=true, it will delete execution directory.
+     * After execution: if deleteEmptyDir=true, it will delete execution directory.
      *
      * @return {@link ProcessResult}
      * @throws IOException
@@ -75,37 +97,42 @@ public class Cmd {
      * @throws InterruptedException
      */
     public ProcessResult execute() throws IOException, TimeoutException, InterruptedException {
-        File dir = path.toFile();
-        if (!dir.exists() && !dir.mkdirs()) {
-            throw new IOException("Can not create execution dir by path: " + path.toString());
+        File dir = executor.getDirectory();
+        if (dir != null && !dir.exists() && !dir.mkdirs()) {
+            throw new IOException("Can not create execution dir by path: " + dir.toString());
+        }
+        for (LambdaListenerAdapter listener : listeners) {
+            executor.addListener(listener);
         }
         ProcessResult result;
         final boolean isSaveOutputToFile = !deleteExecDir && !Strings.isNullOrEmpty(outputFileName);
-        try (OutputStream fileOutput = (isSaveOutputToFile ? Files.newOutputStream(Paths.get(path.toString(), outputFileName), StandardOpenOption.CREATE) : null)) {
+        try (OutputStream fileOutput =
+                     ((isSaveOutputToFile && dir != null) ? Files.newOutputStream(Paths.get(dir.toString(), outputFileName), StandardOpenOption.CREATE) : null)) {
             BeforeStart beforeStart = e -> {
                 if (isSaveOutputToFile) {
                     e.redirectOutputAlsoTo(fileOutput);
                 }
-
-                e.directory(dir);
             };
 
             AfterStop afterStop = p -> {
-                if (this.deleteExecDir) {
+                if (this.deleteExecDir && dir != null) {
                     try {
-                        FileUtils.deleteDirectory(path.toFile());
+                        FileUtils.deleteDirectory(dir);
                     } catch (IOException e) {
                         LOG.debug(e.getMessage(), e);
                     }
-                } else if (deleteEmptyExecDir && path.toFile().delete()) {
-                    LOG.debug("Execution directory [%s] has not been deleted, because either not empty or by other reasons");
                 }
             };
 
-            result = exec
-                    .beforeStart(beforeStart)
-                    .afterStop(afterStop)
-                    .executor()
+            if (script){
+                //OS recognition
+                List<String> commands = executor.getCommand();
+                commands.addAll(0,Arrays.asList("sh", "-c"));
+                executor.command(commands);
+            }
+            result = executor
+                    .addListener(new LambdaListenerAdapter(beforeStart))
+                    .addListener(new LambdaListenerAdapter(afterStop))
                     .execute();
         }
         return result;
