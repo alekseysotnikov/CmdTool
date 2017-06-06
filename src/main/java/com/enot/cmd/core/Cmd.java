@@ -131,7 +131,7 @@ public class Cmd {
             OutputStream fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
 
             beforeStart = e -> {
-                e.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed executor
+                e.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
             };
         }
 
