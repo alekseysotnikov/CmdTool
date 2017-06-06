@@ -6,13 +6,17 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
+import org.zeroturnaround.exec.StartedProcess;
+import org.zeroturnaround.exec.listener.ProcessListener;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
@@ -76,6 +80,7 @@ public class Cmd {
 
     /**
      * Delete execution directory after process stopped
+     *
      * @param cleanUp
      * @return
      */
@@ -92,16 +97,27 @@ public class Cmd {
     }
 
     /**
-     * Execute command.
-     * Before start: creates execution directory if it does not exists.
-     * After stop: if cleanUp==true, it will delete execution directory.
-     *
-     * @return {@link ProcessResult}
-     * @throws IOException
-     * @throws TimeoutException
-     * @throws InterruptedException
+     * See {@link ProcessExecutor#execute()}
      */
-    public ProcessResult execute() throws IOException, TimeoutException, InterruptedException {
+    public ProcessResult execute() throws IOException, TimeoutException, InterruptedException, InvalidExitValueException  {
+        return prepareExecutor().execute();
+    }
+
+    /**
+     * See {@link ProcessExecutor#executeNoTimeout()}
+     */
+    public ProcessResult executeNoTimeout() throws IOException, InterruptedException, InvalidExitValueException {
+        return prepareExecutor().executeNoTimeout();
+    }
+
+    /**
+     * See {@link ProcessExecutor#start()}
+     */
+    public StartedProcess start() throws IOException {
+        return prepareExecutor().start();
+    }
+
+    private ProcessExecutor prepareExecutor() throws IOException {
         File dir = executor.getDirectory();
         if (dir != null && !dir.exists() && !dir.mkdirs()) {
             throw new IOException("Can not create execution dir by path: " + dir.toString());
@@ -109,40 +125,38 @@ public class Cmd {
         for (LambdaListenerAdapter listener : listeners) {
             executor.addListener(listener);
         }
-        ProcessResult result;
-        final boolean isSaveOutputToFile = !cleanUp && !Strings.isNullOrEmpty(outputFileName);
-        try (OutputStream fileOutput =
-                     ((isSaveOutputToFile && dir != null) ? Files.newOutputStream(Paths.get(dir.getPath(), outputFileName), StandardOpenOption.CREATE) : null)) {
-            BeforeStart beforeStart = e -> {
-                if (isSaveOutputToFile) {
-                    e.redirectOutputAlsoTo(fileOutput);
-                }
-            };
+        BeforeStart beforeStart = e -> {};
+        if (!Strings.isNullOrEmpty(outputFileName)) {
+            Path outputFile = Paths.get(dir.getPath(), outputFileName);
+            OutputStream fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
 
-            AfterStop afterStop = p -> {
-                if (this.cleanUp && dir != null) {
-                    try {
-                        FileUtils.deleteDirectory(dir);
-                    } catch (IOException e) {
-                        LOG.debug(e.getMessage(), e);
-                    }
-                }
+            beforeStart = e -> {
+                e.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed executor
             };
-
-            if (script) {
-                //TODO OS recognition
-                List<String> commands = executor.getCommand();
-                commands.addAll(0, Arrays.asList("sh", "-c"));
-                executor.command(commands);
-            }
-            result = executor
-                    .addListener(new LambdaListenerAdapter(
-                            beforeStart,
-                            (p, e) -> {/*nothing*/},
-                            (p, r) -> {/*nothing*/},
-                            afterStop))
-                    .execute();
         }
-        return result;
+
+        AfterStop afterStop = p -> {
+            if (cleanUp) {
+                try {
+                    FileUtils.deleteDirectory(dir);
+                } catch (IOException e) {
+                    LOG.debug(e.getMessage(), e);
+                }
+            }
+        };
+
+        if (script) {
+            //TODO OS recognition
+            List<String> commands = executor.getCommand();
+            commands.addAll(0, Arrays.asList("sh", "-c"));
+            executor.command(commands);
+        }
+        return executor
+                .addListener(new LambdaListenerAdapter(
+                        beforeStart,
+                        (p, e) -> {/*nothing*/},
+                        (p, r) -> {/*nothing*/},
+                        afterStop));
     }
+
 }
