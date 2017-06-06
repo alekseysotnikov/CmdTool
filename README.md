@@ -10,7 +10,8 @@ Java 8+ required.
 **Note**: it is a very early alpha version, the API may change.
 
 ### Motivation
-When we call external programs from Java, we certainly need to harvest the output files and/or output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produces files we don't need. So, we have to do a cleanup a disk space if files don't need anymore, just like Java GC frees RAM automatically.
+When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
+So, we have to do a cleanup of disk space if files don't need anymore, just like Java GC frees RAM automatically.
 
 This library solves this small problem and intended to process each command call inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after finish and after stop process). 
 
