@@ -52,7 +52,7 @@ public class CmdTest {
 
         new Cmd(new ProcessExecutor("echo", "hello world")
                 .directory(execDir.toFile()))
-                .deleteExecDir(true)
+                .cleanUp(true)
                 .execute();
         assertFalse(execDir.toFile().exists());
     }

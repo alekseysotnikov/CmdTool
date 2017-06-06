@@ -62,7 +62,7 @@ new Cmd(new ProcessExecutor("echo", "hello world")
             File outputFile = new File(execDir, outputFileName);
             System.out.println(outputFile.exists()); //true
         })
-        .deleteExecDir(true)
+        .cleanUp(true)
         .execute();
 //execution directory doesn't exists here
 System.out.println(execDir.exists()); //false
