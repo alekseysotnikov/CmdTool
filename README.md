@@ -49,7 +49,7 @@ System.out.println(Files.readFirstLine(file, Charset.defaultCharset()));
 
 // output> Hello
 ````
-> Create execution directory before execution and delete after finish
+> Create execution directory before start and delete after finish
 ````java
 File execDir = new File("./", "foo");
 String outputFileName = "output.txt";
