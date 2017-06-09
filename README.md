@@ -50,13 +50,13 @@ new Cmd()
 File execDir = new File("./", "foo");
 String outputFileName = "output.txt";
 new Cmd()
-        .cleanUp(true)
         .afterStop(process -> {
             //work directory and process result exist here and not deleted yet.
         })
+        .cleanUp(true)
         .execute(new ProcessExecutor("echo", "hello world")
                          .readOutput(true)
                          .directory(execDir));
-//The working directory does not exist here
+//work directory does not exist here
 System.out.println(execDir.exists()); //false
 ````
