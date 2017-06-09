@@ -49,7 +49,7 @@ new Cmd()
 ````java
 new Cmd()
         .afterStop(process -> {
-            //work directory ./foo  and process result exist here and not deleted yet.
+            //work directory ./foo exists here and not deleted yet.
         })
         .cleanUp(true)
         .execute(new ProcessExecutor("echo", "hello world")

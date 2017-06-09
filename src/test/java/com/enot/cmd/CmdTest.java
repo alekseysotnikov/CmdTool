@@ -45,8 +45,9 @@ public class CmdTest {
         assertFalse(workDir.exists());
 
         new Cmd()
-                .execute(new ProcessExecutor("echo", "hello world")
-                        .directory(workDir));
+                .execute(
+                        new ProcessExecutor("echo", "hello world")
+                                .directory(workDir));
 
         assertTrue(workDir.exists());
     }
