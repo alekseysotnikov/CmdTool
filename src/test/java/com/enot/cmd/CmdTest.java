@@ -20,36 +20,60 @@ import static org.junit.Assert.*;
 public class CmdTest {
 
     @Test
-    public void createExecDir() throws Exception {
-        Path path = generateRandomPath();
-        assertFalse(path.toFile().exists());
-
-        new Cmd()
-                .execute(new ProcessExecutor("echo", "hello world")
-                        .directory(path.toFile()));
-
-        assertTrue(path.toFile().exists());
+    public void executeCommand() throws Exception {
+        Assert.assertEquals("Hello\n",
+                new Cmd()
+                        .execute(new ProcessExecutor("echo", "Hello")
+                                .readOutput(true))
+                        .outputUTF8());
     }
 
     @Test
-    public void deleteExecDir() throws Exception {
-        Path execDir = generateRandomPath();
-        createDummyFile(execDir, UUID.randomUUID().toString());
+    public void executeScript() throws Exception {
+        Assert.assertEquals("Hello\n",
+                new Cmd()
+                        .executeInShell(
+                                new ProcessExecutor("s='Hello'; echo $s;")
+                                        .readOutput(true))
+                        .outputUTF8());
+    }
 
-        new Cmd().cleanUp(true)
+    @Test
+    public void createWorkDir() throws Exception {
+        File workDir = generateRandomPath().toFile();
+
+        assertFalse(workDir.exists());
+
+        new Cmd()
                 .execute(new ProcessExecutor("echo", "hello world")
-                        .directory(execDir.toFile()));
-        assertFalse(execDir.toFile().exists());
+                        .directory(workDir));
+
+        assertTrue(workDir.exists());
+    }
+
+    @Test
+    public void cleanUp() throws Exception {
+        File workDir = generateRandomPath().toFile();
+
+        assertFalse(workDir.exists());
+
+        new Cmd()
+                .cleanUp(true)
+                .execute(new ProcessExecutor("echo", "hello world")
+                        .directory(workDir));
+
+        assertFalse("Directory should be deleted", workDir.exists());
     }
 
     @Test
     public void outputFile() throws Exception {
         Path execDir = generateRandomPath();
         String outputFileName = "test.output";
-        new Cmd().outputFileName(outputFileName)
+        new Cmd()
+                .outputFileName(outputFileName)
                 .execute(new ProcessExecutor("echo", "hello world")
                         .directory(execDir.toFile()));
-        assertTrue(Paths.get(execDir.toString(), outputFileName).toFile().exists());
+        assertTrue("Output file should be exists", Paths.get(execDir.toString(), outputFileName).toFile().exists());
     }
 
     @Test
@@ -67,15 +91,6 @@ public class CmdTest {
 
         assertEquals(1, lines.size());
         assertEquals(arg, lines.get(0));
-    }
-
-    @Test
-    public void executeScript() throws InterruptedException, TimeoutException, IOException {
-        Assert.assertEquals("Hello\n",
-                new Cmd().executeInShell(
-                        new ProcessExecutor("s='Hello'; echo $s;")
-                                .readOutput(true))
-                        .outputUTF8());
     }
 
     private Path generateRandomPath() {

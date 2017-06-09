@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -71,7 +70,7 @@ public class Cmd {
     }
 
     /**
-     * Delete work directory after process stopped, only if directory was specified
+     * Delete work directory after process stopped, only if it has been created during the execution
      *
      * @param cleanUp
      * @return
@@ -150,7 +149,8 @@ public class Cmd {
 
     private ProcessExecutor prepareExecutor(ProcessExecutor executor) throws IOException {
         File dir = executor.getDirectory();
-        if (dir != null && !dir.exists() && !dir.mkdirs()) {
+        boolean workDirCreated = false;
+        if (dir != null && !dir.exists() && !(workDirCreated = dir.mkdirs())) {
             throw new IOException("Can not create execution dir by path: " + dir.toString());
         }
         for (LambdaListenerAdapter listener : listeners) {
@@ -168,7 +168,7 @@ public class Cmd {
         }
 
         AfterStop afterStop = p -> {};
-        if (cleanUp && dir != null) {
+        if (cleanUp && workDirCreated) {
             afterStop = p -> {
                 try {
                     FileUtils.deleteDirectory(dir);
