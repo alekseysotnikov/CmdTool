@@ -56,5 +56,4 @@ new Cmd()
                          .readOutput(true)
                          .directory(new File("./", "foo"))); // work directory ./foo will be created automatically
 //work directory ./foo does not exist here
-System.out.println(execDir.exists()); //false
 ````
