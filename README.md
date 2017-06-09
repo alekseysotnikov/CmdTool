@@ -54,7 +54,7 @@ new Cmd()
         .cleanUp(true)
         .execute(new ProcessExecutor("echo", "hello world")
                          .readOutput(true)
-                         .directory(new File("./", "foo"))); // ./foo directory will be created automatically
+                         .directory(new File("./", "foo"))); // work directory ./foo will be created automatically
 //work directory ./foo does not exist here
 System.out.println(execDir.exists()); //false
 ````
