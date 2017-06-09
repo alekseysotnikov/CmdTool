@@ -20,27 +20,13 @@ import static org.junit.Assert.*;
 public class CmdTest {
 
     @Test
-    public void executeCommand() throws Exception {
-        String uuid = UUID.randomUUID().toString();
-        Path execDir = generateRandomPath();
-        createDummyFile(execDir, uuid);
-
-        String output = new Cmd(new ProcessExecutor("ls", ".")
-                .readOutput(true)
-                .directory(execDir.toFile()))
-                .execute()
-                .outputUTF8();
-        assertEquals(uuid + "\n", output);
-    }
-
-    @Test
     public void createExecDir() throws Exception {
         Path path = generateRandomPath();
         assertFalse(path.toFile().exists());
 
-        new Cmd(new ProcessExecutor("echo", "hello world")
-                .directory(path.toFile()))
-                .execute();
+        new Cmd()
+                .execute(new ProcessExecutor("echo", "hello world")
+                        .directory(path.toFile()));
 
         assertTrue(path.toFile().exists());
     }
@@ -50,10 +36,9 @@ public class CmdTest {
         Path execDir = generateRandomPath();
         createDummyFile(execDir, UUID.randomUUID().toString());
 
-        new Cmd(new ProcessExecutor("echo", "hello world")
-                .directory(execDir.toFile()))
-                .cleanUp(true)
-                .execute();
+        new Cmd().cleanUp(true)
+                .execute(new ProcessExecutor("echo", "hello world")
+                        .directory(execDir.toFile()));
         assertFalse(execDir.toFile().exists());
     }
 
@@ -61,11 +46,40 @@ public class CmdTest {
     public void outputFile() throws Exception {
         Path execDir = generateRandomPath();
         String outputFileName = "test.output";
-        new Cmd(new ProcessExecutor("echo", "hello world")
-                .directory(execDir.toFile()))
-                .outputFileName(outputFileName)
-                .execute();
+        new Cmd().outputFileName(outputFileName)
+                .execute(new ProcessExecutor("echo", "hello world")
+                        .directory(execDir.toFile()));
         assertTrue(Paths.get(execDir.toString(), outputFileName).toFile().exists());
+    }
+
+    @Test
+    public void beforeStartListener() throws IOException, InterruptedException, TimeoutException {
+        ArrayList<String> lines = Lists.newArrayList();
+        final String arg = "line1";
+        new Cmd()
+                .beforeStart(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
+                    @Override
+                    protected void processLine(String line) {
+                        lines.add(line);
+                    }
+                }))
+                .execute("echo", arg);
+
+        assertEquals(1, lines.size());
+        assertEquals(arg, lines.get(0));
+    }
+
+    @Test
+    public void executeScript() throws InterruptedException, TimeoutException, IOException {
+        Assert.assertEquals("Hello\n",
+                new Cmd().executeInShell(
+                        new ProcessExecutor("s='Hello'; echo $s;")
+                                .readOutput(true))
+                        .outputUTF8());
+    }
+
+    private Path generateRandomPath() {
+        return Paths.get("./target/", UUID.randomUUID().toString());
     }
 
     private void createDummyFile(Path path, String fileName) throws IOException {
@@ -73,48 +87,5 @@ public class CmdTest {
         File dummyFile = Paths.get(path.toString(), fileName).toFile();
         dummyFile.createNewFile();
         assertTrue(dummyFile.exists());
-    }
-
-    @Test
-    public void readOutput() throws IOException, InterruptedException, TimeoutException {
-        final String str = "Hello";
-        String result =
-                new Cmd(new ProcessExecutor("echo", str)
-                        .readOutput(true))
-                        .execute()
-                        .outputUTF8();
-
-        assertEquals(str + "\n", result);
-    }
-
-    @Test
-    public void beforeStartListener() throws IOException, InterruptedException, TimeoutException {
-        ArrayList<String> lines = Lists.newArrayList();
-        final String arg = "line1";
-        new Cmd("echo", arg)
-                .beforeStart(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
-                    @Override
-                    protected void processLine(String line) {
-                        lines.add(line);
-                    }
-                }))
-                .execute();
-
-        assertEquals(1, lines.size());
-        assertEquals(arg, lines.get(0));
-    }
-
-    @Test
-    public void runScript() throws InterruptedException, TimeoutException, IOException {
-        Assert.assertEquals("Hello\n",
-                new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
-                        .readOutput(true))
-                        .script(true)
-                        .execute()
-                        .outputUTF8());
-    }
-
-    private Path generateRandomPath() {
-        return Paths.get("./target/", UUID.randomUUID().toString());
     }
 }

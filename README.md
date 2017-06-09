@@ -23,20 +23,17 @@ This library solves this small problem and intended to call each command inside 
 ### Examples
 > Execute command
 ````java
-new Cmd("echo", "Hello").execute();
+new Cmd().execute("echo", "Hello");
 ````
 > Execute script in a Shell
 ````java
-new Cmd("s='Hello'; echo $s;")
-      .script(true)
-      .execute();
+new Cmd().executeInShell("s='Hello'; echo $s;");
 ````
 > Execute script and read output
 ````java
-String output = new Cmd(new ProcessExecutor("s='Hello'; echo $s;")
-                     .readOutput(true))
-                     .script(true)
-                     .execute()
+String output = new Cmd()
+                     .executeInShell(new ProcessExecutor("s='Hello'; echo $s;")
+                                          .readOutput(true))
                      .outputUTF8();
 System.out.println(output);
 
@@ -44,31 +41,25 @@ System.out.println(output);
 ````
 > Save output stream into a file, even if the process stopped unexpectedly
 ```java
-new Cmd(new ProcessExecutor("echo", "Hello")
-                .directory(new File("./")))
-                .outputFileName("output.txt")
-                .execute();
-
-File file = new File("./", "output.txt");
-System.out.println(Files.readFirstLine(file, Charset.defaultCharset())); 
-
-// output> Hello
+new Cmd()
+      .outputFileName("output.txt")
+      .execute("echo", "Hello");
 ````
 > Create execution directory before start and delete after finish
 ````java
 File execDir = new File("./", "foo");
 String outputFileName = "output.txt";
-new Cmd(new ProcessExecutor("echo", "hello world")
-        .readOutput(true)
-        .directory(execDir))
+new Cmd()
+        .cleanUp(true)
         .outputFileName(outputFileName)
-        .afterStop((process)-> {
+        .afterStop(process -> {
             //execution directory and process result is ready for usage here, and not deleted yet
             File outputFile = new File(execDir, outputFileName);
             System.out.println(outputFile.exists()); //true
         })
-        .cleanUp(true)
-        .execute();
+        .execute(new ProcessExecutor("echo", "hello world")
+                         .readOutput(true)
+                         .directory(execDir));
 //execution directory doesn't exists here
 System.out.println(execDir.exists()); //false
 
