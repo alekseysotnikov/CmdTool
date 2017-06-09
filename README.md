@@ -47,16 +47,14 @@ new Cmd()
 ````
 > Create work directory before start and delete after finish
 ````java
-File execDir = new File("./", "foo");
-String outputFileName = "output.txt";
 new Cmd()
         .afterStop(process -> {
-            //work directory and process result exist here and not deleted yet.
+            //work directory ./foo  and process result exist here and not deleted yet.
         })
         .cleanUp(true)
         .execute(new ProcessExecutor("echo", "hello world")
                          .readOutput(true)
-                         .directory(execDir));
-//work directory does not exist here
+                         .directory(new File("./", "foo"))); // ./foo directory will be created automatically
+//work directory ./foo does not exist here
 System.out.println(execDir.exists()); //false
 ````
