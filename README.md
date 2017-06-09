@@ -18,7 +18,7 @@ This library solves this small problem and intended to call each command inside 
 ### Features
 - Execute command or script
 - Save output stream of the process into a file
-- Create or delete execution directory before or after execution
+- Create or delete work directory before or after execution
 
 ### Examples
 > Execute command
@@ -45,7 +45,7 @@ new Cmd()
       .outputFileName("output.txt")
       .execute("echo", "Hello");
 ````
-> Create execution directory before start and delete after finish
+> Create work directory before start and delete after finish
 ````java
 File execDir = new File("./", "foo");
 String outputFileName = "output.txt";
@@ -53,14 +53,14 @@ new Cmd()
         .cleanUp(true)
         .outputFileName(outputFileName)
         .afterStop(process -> {
-            //execution directory and process result is ready for usage here, and not deleted yet
+            //work directory and process result is ready for usage here, and not deleted yet
             File outputFile = new File(execDir, outputFileName);
             System.out.println(outputFile.exists()); //true
         })
         .execute(new ProcessExecutor("echo", "hello world")
                          .readOutput(true)
                          .directory(execDir));
-//execution directory doesn't exists here
+//work directory doesn't exists here
 System.out.println(execDir.exists()); //false
 
 //output> true
