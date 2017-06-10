@@ -19,7 +19,7 @@ This library solves this small problem and intended to call each command inside 
 - Execute command or script
 - Save output stream of the process into a file
 - Create work directory automatically
-- Clean up disk space from produced data automatically
+- Clean up disk space from a produced data automatically
 
 ### Examples
 > Execute command
@@ -56,4 +56,9 @@ new Cmd()
         .cleanUp(true)
         .execute("echo", "hello world"); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
+````
+> Run in a background
+````java
+StartedProcess startedProcess = new Cmd().start("echo", "Hello");
+startedProcess.getFuture().get(); //wait result
 ````
