@@ -18,7 +18,8 @@ This library solves this small problem and intended to call each command inside 
 ### Features
 - Execute command or script
 - Save output stream of the process into a file
-- Create or delete work directory before or after execution
+- Create work directory automatically
+- Cleanup produced data
 
 ### Examples
 > Execute command
@@ -48,7 +49,7 @@ new Cmd()
 > Create work directory before start and delete after finish
 ````java
 new Cmd()
-        .configureExecutor(e -> e.directory(new File("./", "foo")).readOutput(true))
+        .configureExecutor(e -> e.readOutput(true).directory(new File("./", "foo")))
         .afterStop(process -> {
             //work directory ./foo exists here and not deleted yet.
         })
