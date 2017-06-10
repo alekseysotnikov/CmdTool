@@ -123,60 +123,27 @@ public class Cmd {
 
     /**
      * See {@link ProcessExecutor#execute()}
-     * <p>
-     * Note: Windows OS doesn't supported, use {@link #execute(String...)}} instead
-     */
-    public ProcessResult executeInShell(ProcessExecutor executor) throws IOException, TimeoutException, InterruptedException, InvalidExitValueException {
-        List<String> command = executor.getCommand();
-        command.add(0, "sh");
-        command.add(1, "-c");
-        executor.command(command);
-        return execute(executor);
-    }
-
-    /**
-     * See {@link ProcessExecutor#execute()}
      */
     public ProcessResult execute(String... command) throws IOException, TimeoutException, InterruptedException, InvalidExitValueException {
-        return execute(new ProcessExecutor(command));
-    }
-
-    /**
-     * See {@link ProcessExecutor#execute()}
-     */
-    public ProcessResult execute(ProcessExecutor executor) throws IOException, TimeoutException, InterruptedException, InvalidExitValueException {
-        return prepareExecutor(executor).execute();
+        return createExecutor(command).execute();
     }
 
     /**
      * See {@link ProcessExecutor#executeNoTimeout()}
      */
     public ProcessResult executeNoTimeout(String... command) throws IOException, InterruptedException, InvalidExitValueException {
-        return executeNoTimeout(new ProcessExecutor(command));
-    }
-
-    /**
-     * See {@link ProcessExecutor#executeNoTimeout()}
-     */
-    public ProcessResult executeNoTimeout(ProcessExecutor executor) throws IOException, InterruptedException, InvalidExitValueException {
-        return prepareExecutor(executor).executeNoTimeout();
+        return createExecutor(command).executeNoTimeout();
     }
 
     /**
      * See {@link ProcessExecutor#start()}
      */
     public StartedProcess start(String... command) throws IOException {
-        return start(new ProcessExecutor(command));
+        return createExecutor(command).start();
     }
 
-    /**
-     * See {@link ProcessExecutor#start()}
-     */
-    public StartedProcess start(ProcessExecutor executor) throws IOException {
-        return prepareExecutor(executor).start();
-    }
-
-    private ProcessExecutor prepareExecutor(final ProcessExecutor executor) throws IOException {
+    private ProcessExecutor createExecutor(final String ...command) throws IOException {
+        final ProcessExecutor executor = new ProcessExecutor(command);
         for (LambdaListenerAdapter listener : listeners) {
             executor.addListener(listener);
         }

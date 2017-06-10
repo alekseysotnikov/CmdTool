@@ -18,11 +18,31 @@ import static org.junit.Assert.*;
 public class CmdTest {
 
     @Test
-    public void executeCommand() throws Exception {
+    public void execute() throws Exception {
         Assert.assertEquals("Hello\n",
                 new Cmd()
                         .configureExecutor(e -> e.readOutput(true))
                         .execute("echo", "Hello")
+                        .outputUTF8());
+    }
+
+    @Test
+    public void executeNoTimeout() throws Exception {
+        Assert.assertEquals("Hello\n",
+                new Cmd()
+                        .configureExecutor(e -> e.readOutput(true))
+                        .executeNoTimeout("echo", "Hello")
+                        .outputUTF8());
+    }
+
+    @Test
+    public void start() throws Exception {
+        Assert.assertEquals("Hello\n",
+                new Cmd()
+                        .configureExecutor(e -> e.readOutput(true))
+                        .start("echo", "Hello")
+                        .getFuture()
+                        .get()
                         .outputUTF8());
     }
 
