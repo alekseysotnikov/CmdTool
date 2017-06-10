@@ -48,9 +48,7 @@ new Cmd()
 > Create work directory before start and delete after finish
 ````java
 new Cmd()
-        .configureExecutor(e -> e
-                                .directory(new File("./", "foo"))
-                                .readOutput(true))
+        .configureExecutor(e -> e.directory(new File("./", "foo")).readOutput(true))
         .afterStop(process -> {
             //work directory ./foo exists here and not deleted yet.
         })
