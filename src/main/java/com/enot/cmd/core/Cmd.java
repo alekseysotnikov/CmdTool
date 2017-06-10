@@ -1,9 +1,9 @@
 package com.enot.cmd.core;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
+import org.cactoos.list.ArrayAsIterable;
+import org.cactoos.list.ConcatenatedIterable;
+import org.cactoos.list.TransformedIterable;
 import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
@@ -33,7 +33,7 @@ public class Cmd {
     private final Iterable<LambdaListenerAdapter> listeners;
 
     public Cmd() {
-        this(false, "", ImmutableList.of());
+        this(false, "", new ArrayAsIterable<>());
     }
 
     public Cmd(boolean cleanUp, String outputFileName, Iterable<LambdaListenerAdapter> listeners) {
@@ -43,27 +43,56 @@ public class Cmd {
     }
 
     public Cmd listeners(LambdaListenerAdapter... listeners) {
-        return new Cmd(cleanUp, outputFileName, Iterables.concat(this.listeners, ImmutableList.copyOf(listeners)));
+        return new Cmd(
+                cleanUp,
+                outputFileName,
+                new ConcatenatedIterable<>(
+                        this.listeners,
+                        new ArrayAsIterable<>(listeners)));
     }
 
     public Cmd beforeStart(BeforeStart... lambdas) {
-        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Cmd(cleanUp, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)));
+        return new Cmd(
+                cleanUp,
+                outputFileName,
+                new ConcatenatedIterable<>(
+                        this.listeners,
+                        new TransformedIterable<>(
+                                new ArrayAsIterable<>(lambdas),
+                                LambdaListenerAdapter::new)));
     }
 
     public Cmd afterStart(AfterStart... lambdas) {
-        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Cmd(cleanUp, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)));
+        return new Cmd(
+                cleanUp,
+                outputFileName,
+                new ConcatenatedIterable<>(
+                        this.listeners,
+                        new TransformedIterable<>(
+                                new ArrayAsIterable<>(lambdas),
+                                LambdaListenerAdapter::new)));
     }
 
     public Cmd afterFinish(AfterFinish... lambdas) {
-        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Cmd(cleanUp, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)));
+        return new Cmd(
+                cleanUp,
+                outputFileName,
+                new ConcatenatedIterable<>(
+                        this.listeners,
+                        new TransformedIterable<>(
+                                new ArrayAsIterable<>(lambdas),
+                                LambdaListenerAdapter::new)));
     }
 
     public Cmd afterStop(AfterStop... lambdas) {
-        List<LambdaListenerAdapter> labdasList = Arrays.stream(lambdas).map(LambdaListenerAdapter::new).collect(Collectors.toList());
-        return new Cmd(cleanUp, outputFileName, Iterables.unmodifiableIterable(Iterables.concat(this.listeners, (Iterable) labdasList)));
+        return new Cmd(
+                cleanUp,
+                outputFileName,
+                new ConcatenatedIterable<>(
+                        this.listeners,
+                        new TransformedIterable<>(
+                                new ArrayAsIterable<>(lambdas),
+                                LambdaListenerAdapter::new)));
     }
 
     /**
@@ -154,13 +183,14 @@ public class Cmd {
             executor.addListener(listener);
         }
 
-        if (!Strings.isNullOrEmpty(outputFileName)) {
+        if (outputFileName != null && outputFileName.length() > 0) {
             Path outputFile = Paths.get(dir.getPath(), outputFileName);
             OutputStream fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
             executor.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
         }
 
-        AfterStop afterStop = p -> {};
+        AfterStop afterStop = p -> {
+        };
         if (cleanUp && workDirCreated) {
             afterStop = p -> {
                 try {
@@ -173,7 +203,8 @@ public class Cmd {
 
         return executor
                 .addListener(new LambdaListenerAdapter(
-                        e -> {},
+                        e -> {
+                        },
                         (p, e) -> {/*nothing*/},
                         (p, r) -> {/*nothing*/},
                         afterStop));

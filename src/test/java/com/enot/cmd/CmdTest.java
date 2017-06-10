@@ -1,7 +1,6 @@
 package com.enot.cmd;
 
 import com.enot.cmd.core.Cmd;
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 import org.zeroturnaround.exec.ProcessExecutor;
@@ -79,7 +78,7 @@ public class CmdTest {
 
     @Test
     public void beforeStartListener() throws IOException, InterruptedException, TimeoutException {
-        ArrayList<String> lines = Lists.newArrayList();
+        ArrayList<String> lines = new ArrayList<>();
         final String arg = "line1";
         new Cmd()
                 .beforeStart(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
