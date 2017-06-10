@@ -32,8 +32,8 @@ new Cmd().executeInShell("s='Hello'; echo $s;");
 > Execute script and read output
 ````java
 String output = new Cmd()
-                     .executeInShell(new ProcessExecutor("s='Hello'; echo $s;")
-                                          .readOutput(true))
+                     .configureExecutor(e -> e.readOutput(true))
+                     .executeInShell("s='Hello'; echo $s;")
                      .outputUTF8();
 System.out.println(output);
 
@@ -48,12 +48,13 @@ new Cmd()
 > Create work directory before start and delete after finish
 ````java
 new Cmd()
+        .configureExecutor(e -> e
+                                .directory(new File("./", "foo"))
+                                .readOutput(true))
         .afterStop(process -> {
             //work directory ./foo exists here and not deleted yet.
         })
         .cleanUp(true)
-        .execute(new ProcessExecutor("echo", "hello world")
-                         .readOutput(true)
-                         .directory(new File("./", "foo"))); // work directory ./foo will be created automatically
-//work directory ./foo does not exist here
+        .execute("echo", "hello world"); // work directory ./foo will be created automatically
+//work directory ./foo was deleted after execution
 ````

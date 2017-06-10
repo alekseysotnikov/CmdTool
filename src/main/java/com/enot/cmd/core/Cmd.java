@@ -8,6 +8,7 @@ import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
 import org.zeroturnaround.exec.StartedProcess;
+import org.zeroturnaround.exec.listener.ProcessListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,10 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import static com.enot.cmd.core.LambdaListenerAdapter.*;
 
@@ -49,6 +48,10 @@ public class Cmd {
                 new ConcatenatedIterable<>(
                         this.listeners,
                         new ArrayAsIterable<>(listeners)));
+    }
+
+    public Cmd configureExecutor(BeforeStart lambda) {
+        return beforeStart(lambda);
     }
 
     public Cmd beforeStart(BeforeStart... lambdas) {
@@ -173,41 +176,56 @@ public class Cmd {
         return prepareExecutor(executor).start();
     }
 
-    private ProcessExecutor prepareExecutor(ProcessExecutor executor) throws IOException {
-        File dir = executor.getDirectory();
-        boolean workDirCreated = false;
-        if (dir != null && !dir.exists() && !(workDirCreated = dir.mkdirs())) {
-            throw new IOException("Can not create execution dir by path: " + dir.toString());
-        }
+    private ProcessExecutor prepareExecutor(final ProcessExecutor executor) throws IOException {
         for (LambdaListenerAdapter listener : listeners) {
             executor.addListener(listener);
         }
+        executor.addListener(new ProcessListener() {
+            @Override
+            public void beforeStart(ProcessExecutor executor) {
+                File dir = executor.getDirectory();
+                if (dir != null && !dir.exists()) {
+                    final boolean workDirCreated = dir.mkdirs();
+                    if (!workDirCreated)
+                        throw new UncheckedIOException(
+                                new IOException(String.format("Work directory %s can not be created", dir.toPath())));
+                    if (cleanUp && workDirCreated) {
+                        executor.addListener(new ProcessListener() {
+                            @Override
+                            public void afterStop(Process process) {
+                                try {
+                                    FileUtils.deleteDirectory(dir);
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException(
+                                            String.format("Work directory %s can not be deleted", dir.toPath()),
+                                            e);
+                                }
 
-        if (outputFileName != null && outputFileName.length() > 0) {
-            Path outputFile = Paths.get(dir.getPath(), outputFileName);
-            OutputStream fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
-            executor.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
-        }
-
-        AfterStop afterStop = p -> {
-        };
-        if (cleanUp && workDirCreated) {
-            afterStop = p -> {
-                try {
-                    FileUtils.deleteDirectory(dir);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                            }
+                        });
+                    }
                 }
-            };
-        }
+                if (outputFileName != null && outputFileName.length() > 0) {
+                    Path outputFile;
+                    if (dir != null) {
+                        outputFile = Paths.get(dir.getPath(), outputFileName);
+                    } else {
+                        outputFile = Paths.get(outputFileName);
+                    }
 
-        return executor
-                .addListener(new LambdaListenerAdapter(
-                        e -> {
-                        },
-                        (p, e) -> {/*nothing*/},
-                        (p, r) -> {/*nothing*/},
-                        afterStop));
+                    OutputStream fileOutputStream = null;
+                    try {
+                        fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
+                        executor.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(
+                                String.format("Output file %s can not be created", outputFile),
+                                e);
+                    }
+                }
+            }
+        });
+
+        return executor;
     }
-
 }

@@ -3,7 +3,6 @@ package com.enot.cmd;
 import com.enot.cmd.core.Cmd;
 import org.junit.Assert;
 import org.junit.Test;
-import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.stream.LogOutputStream;
 
 import java.io.File;
@@ -22,8 +21,8 @@ public class CmdTest {
     public void executeCommand() throws Exception {
         Assert.assertEquals("Hello\n",
                 new Cmd()
-                        .execute(new ProcessExecutor("echo", "Hello")
-                                .readOutput(true))
+                        .configureExecutor(e -> e.readOutput(true))
+                        .execute("echo", "Hello")
                         .outputUTF8());
     }
 
@@ -31,9 +30,8 @@ public class CmdTest {
     public void executeScript() throws Exception {
         Assert.assertEquals("Hello\n",
                 new Cmd()
-                        .executeInShell(
-                                new ProcessExecutor("s='Hello'; echo $s;")
-                                        .readOutput(true))
+                        .configureExecutor(e -> e.readOutput(true))
+                        .executeInShell("s='Hello'; echo $s;")
                         .outputUTF8());
     }
 
@@ -44,9 +42,8 @@ public class CmdTest {
         assertFalse(workDir.exists());
 
         new Cmd()
-                .execute(
-                        new ProcessExecutor("echo", "hello world")
-                                .directory(workDir));
+                .configureExecutor(e -> e.directory(workDir))
+                .execute("echo", "hello world");
 
         assertTrue(workDir.exists());
     }
@@ -58,9 +55,9 @@ public class CmdTest {
         assertFalse(workDir.exists());
 
         new Cmd()
+                .configureExecutor(e -> e.directory(workDir))
                 .cleanUp(true)
-                .execute(new ProcessExecutor("echo", "hello world")
-                        .directory(workDir));
+                .execute("echo", "hello world");
 
         assertFalse("Directory should be deleted", workDir.exists());
     }
@@ -70,9 +67,9 @@ public class CmdTest {
         Path execDir = generateRandomPath();
         String outputFileName = "test.output";
         new Cmd()
+                .configureExecutor(e -> e.directory(execDir.toFile()))
                 .outputFileName(outputFileName)
-                .execute(new ProcessExecutor("echo", "hello world")
-                        .directory(execDir.toFile()));
+                .execute("echo", "hello world");
         assertTrue("Output file should be exists", Paths.get(execDir.toString(), outputFileName).toFile().exists());
     }
 
@@ -81,7 +78,7 @@ public class CmdTest {
         ArrayList<String> lines = new ArrayList<>();
         final String arg = "line1";
         new Cmd()
-                .beforeStart(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
+                .configureExecutor(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
                     @Override
                     protected void processLine(String line) {
                         lines.add(line);
@@ -95,12 +92,5 @@ public class CmdTest {
 
     private Path generateRandomPath() {
         return Paths.get("./target/", UUID.randomUUID().toString());
-    }
-
-    private void createDummyFile(Path path, String fileName) throws IOException {
-        path.toFile().mkdir();
-        File dummyFile = Paths.get(path.toString(), fileName).toFile();
-        dummyFile.createNewFile();
-        assertTrue(dummyFile.exists());
     }
 }
