@@ -11,7 +11,7 @@ Java 8+ required.
 
 ### Motivation
 When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
-So, we have to do a cleanup of disk space if files don't need anymore, just like Java GC frees RAM automatically.
+So, we have to do a clean up of disk space if files don't need anymore, just like Java GC frees RAM automatically.
 
 This library solves this small problem and intended to call each command inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after finish and after stop process). 
 
@@ -19,7 +19,7 @@ This library solves this small problem and intended to call each command inside 
 - Execute command or script
 - Save output stream of the process into a file
 - Create work directory automatically
-- Cleanup produced data
+- Clean up disk space from produced data
 
 ### Examples
 > Execute command
