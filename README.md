@@ -19,7 +19,7 @@ This library solves this small problem and intended to call each command inside 
 - Execute command or script
 - Save output stream of the process into a file
 - Create work directory automatically
-- Clean up disk space from produced data
+- Clean up disk space from produced data automatically
 
 ### Examples
 > Execute command
