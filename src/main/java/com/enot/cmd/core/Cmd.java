@@ -4,8 +4,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
@@ -14,6 +12,7 @@ import org.zeroturnaround.exec.StartedProcess;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,8 +28,6 @@ import static com.enot.cmd.core.LambdaListenerAdapter.*;
  * Command line representation with the additional features around a process execution
  */
 public class Cmd {
-    private static final Logger LOG = LoggerFactory.getLogger(Cmd.class.getName());
-
     private final boolean cleanUp;
     private final String outputFileName;
     private final Iterable<LambdaListenerAdapter> listeners;
@@ -157,14 +154,10 @@ public class Cmd {
             executor.addListener(listener);
         }
 
-        BeforeStart beforeStart = e -> {};
         if (!Strings.isNullOrEmpty(outputFileName)) {
             Path outputFile = Paths.get(dir.getPath(), outputFileName);
             OutputStream fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
-
-            beforeStart = e -> {
-                e.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
-            };
+            executor.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
         }
 
         AfterStop afterStop = p -> {};
@@ -173,14 +166,14 @@ public class Cmd {
                 try {
                     FileUtils.deleteDirectory(dir);
                 } catch (IOException e) {
-                    LOG.debug(e.getMessage(), e);
+                    throw new UncheckedIOException(e);
                 }
             };
         }
 
         return executor
                 .addListener(new LambdaListenerAdapter(
-                        beforeStart,
+                        e -> {},
                         (p, e) -> {/*nothing*/},
                         (p, r) -> {/*nothing*/},
                         afterStop));
