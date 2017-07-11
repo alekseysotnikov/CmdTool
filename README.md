@@ -33,8 +33,7 @@ new Cmd().executing().executeInShell("s='Hello'; echo $s;");
 > Execute script and read output
 ````java
 String output = new Cmd(e -> e.readOutput(true))
-                     .executing()
-                     .executeInShell("s='Hello'; echo $s;")
+                     .executing().executeInShell("s='Hello'; echo $s;")
                      .outputUTF8();
 System.out.println(output);
 
@@ -44,8 +43,7 @@ System.out.println(output);
 ```java
 new Cmd()
       .outputFileName("output.txt")
-      .executing()
-      .execute("echo", "Hello");
+      .executing().execute("echo", "Hello");
 ````
 > Create work directory before start and delete after finish
 ````java
@@ -57,8 +55,7 @@ new Cmd()
         })
         .back()
         .cleanUp(true)
-        .executing()
-        .execute("echo", "hello world"); // work directory ./foo will be created automatically
+        .executing().execute("echo", "hello world"); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
 ````
 > Run in a background
