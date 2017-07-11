@@ -2,8 +2,8 @@ package com.enot.cmd.core;
 
 import org.apache.commons.io.FileUtils;
 import org.cactoos.list.ArrayAsIterable;
-import org.cactoos.list.ConcatenatedIterable;
-import org.cactoos.list.TransformedIterable;
+import org.cactoos.list.ConcatIterable;
+import org.cactoos.list.MappedIterable;
 import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static com.enot.cmd.core.LambdaListenerAdapter.*;
@@ -45,7 +44,7 @@ public class Cmd {
         return new Cmd(
                 cleanUp,
                 outputFileName,
-                new ConcatenatedIterable<>(
+                new ConcatIterable<>(
                         this.listeners,
                         new ArrayAsIterable<>(listeners)));
     }
@@ -58,9 +57,9 @@ public class Cmd {
         return new Cmd(
                 cleanUp,
                 outputFileName,
-                new ConcatenatedIterable<>(
+                new ConcatIterable<>(
                         this.listeners,
-                        new TransformedIterable<>(
+                        new MappedIterable<>(
                                 new ArrayAsIterable<>(lambdas),
                                 LambdaListenerAdapter::new)));
     }
@@ -69,9 +68,9 @@ public class Cmd {
         return new Cmd(
                 cleanUp,
                 outputFileName,
-                new ConcatenatedIterable<>(
+                new ConcatIterable<>(
                         this.listeners,
-                        new TransformedIterable<>(
+                        new MappedIterable<>(
                                 new ArrayAsIterable<>(lambdas),
                                 LambdaListenerAdapter::new)));
     }
@@ -80,9 +79,9 @@ public class Cmd {
         return new Cmd(
                 cleanUp,
                 outputFileName,
-                new ConcatenatedIterable<>(
+                new ConcatIterable<>(
                         this.listeners,
-                        new TransformedIterable<>(
+                        new MappedIterable<>(
                                 new ArrayAsIterable<>(lambdas),
                                 LambdaListenerAdapter::new)));
     }
@@ -91,9 +90,9 @@ public class Cmd {
         return new Cmd(
                 cleanUp,
                 outputFileName,
-                new ConcatenatedIterable<>(
+                new ConcatIterable<>(
                         this.listeners,
-                        new TransformedIterable<>(
+                        new MappedIterable<>(
                                 new ArrayAsIterable<>(lambdas),
                                 LambdaListenerAdapter::new)));
     }
@@ -125,29 +124,33 @@ public class Cmd {
      * See {@link ProcessExecutor#execute()}
      */
     public ProcessResult execute(String... command) throws IOException, TimeoutException, InterruptedException, InvalidExitValueException {
-        return createExecutor(command).execute();
+        return executor(command).execute();
     }
 
     /**
      * See {@link ProcessExecutor#executeNoTimeout()}
      */
     public ProcessResult executeNoTimeout(String... command) throws IOException, InterruptedException, InvalidExitValueException {
-        return createExecutor(command).executeNoTimeout();
+        return executor(command).executeNoTimeout();
     }
 
     /**
      * See {@link ProcessExecutor#start()}
      */
     public StartedProcess start(String... command) throws IOException {
-        return createExecutor(command).start();
+        return executor(command).start();
     }
 
-    private ProcessExecutor createExecutor(final String ...command) throws IOException {
+    private ProcessExecutor executor(final String ...command) throws IOException {
         final ProcessExecutor executor = new ProcessExecutor(command);
         for (LambdaListenerAdapter listener : listeners) {
             executor.addListener(listener);
         }
-        executor.addListener(new ProcessListener() {
+        return executor.addListener(cmdListener(cleanUp, outputFileName));
+    }
+
+    private ProcessListener cmdListener(boolean cleanUp, String outputFileName) {
+        return new ProcessListener() {
             @Override
             public void beforeStart(ProcessExecutor executor) {
                 File dir = executor.getDirectory();
@@ -157,42 +160,45 @@ public class Cmd {
                         throw new UncheckedIOException(
                                 new IOException(String.format("Work directory %s can not be created", dir.toPath())));
                     if (cleanUp && workDirCreated) {
-                        executor.addListener(new ProcessListener() {
-                            @Override
-                            public void afterStop(Process process) {
-                                try {
-                                    FileUtils.deleteDirectory(dir);
-                                } catch (IOException e) {
-                                    throw new UncheckedIOException(
-                                            String.format("Work directory %s can not be deleted", dir.toPath()),
-                                            e);
-                                }
-
-                            }
-                        });
+                        executor.addListener(deleteDirAfterStop(dir));
                     }
                 }
                 if (outputFileName != null && outputFileName.length() > 0) {
-                    Path outputFile;
-                    if (dir != null) {
-                        outputFile = Paths.get(dir.getPath(), outputFileName);
-                    } else {
-                        outputFile = Paths.get(outputFileName);
-                    }
-
-                    OutputStream fileOutputStream = null;
-                    try {
-                        fileOutputStream = Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
-                        executor.redirectOutputAlsoTo(fileOutputStream); //output stream will be closed by executor
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(
-                                String.format("Output file %s can not be created", outputFile),
-                                e);
-                    }
+                    executor.redirectOutputAlsoTo(createFileOS(dir)); //output stream will be closed by executor
                 }
             }
-        });
 
-        return executor;
+            private OutputStream createFileOS(File workDir){
+                Path outputFile;
+                if (workDir != null) {
+                    outputFile = Paths.get(workDir.getPath(), outputFileName);
+                } else {
+                    outputFile = Paths.get(outputFileName);
+                }
+                try {
+                    return Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(
+                            String.format("Output file %s can not be created", outputFile),
+                            e);
+                }
+            }
+
+            private ProcessListener deleteDirAfterStop(File dir) {
+                return new ProcessListener() {
+                    @Override
+                    public void afterStop(Process process) {
+                        try {
+                            FileUtils.deleteDirectory(dir);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(
+                                    String.format("Work directory %s can not be deleted", dir.toPath()),
+                                    e);
+                        }
+
+                    }
+                };
+            }
+        };
     }
 }
