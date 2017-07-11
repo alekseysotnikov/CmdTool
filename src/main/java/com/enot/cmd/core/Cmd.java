@@ -4,10 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.cactoos.list.ArrayAsIterable;
 import org.cactoos.list.ConcatIterable;
 import org.cactoos.list.MappedIterable;
-import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
-import org.zeroturnaround.exec.ProcessResult;
-import org.zeroturnaround.exec.StartedProcess;
 import org.zeroturnaround.exec.listener.ProcessListener;
 
 import java.io.File;
@@ -18,83 +15,27 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.TimeoutException;
-
-import static com.enot.cmd.core.LambdaListenerAdapter.*;
 
 /**
  * Command line representation with the additional features around a process execution
  */
-public class Cmd {
+public final class Cmd implements ICmd {
     private final boolean cleanUp;
     private final String outputFileName;
-    private final Iterable<LambdaListenerAdapter> listeners;
+    private final Listening listening;
 
     public Cmd() {
-        this(false, "", new ArrayAsIterable<>());
+        this(false, "", new Listening(null, new ArrayAsIterable<>()));
     }
 
-    public Cmd(boolean cleanUp, String outputFileName, Iterable<LambdaListenerAdapter> listeners) {
+    public Cmd(LambdaListenerAdapter.BeforeStart configuring) {
+        this(false, "", new Listening(null, new ArrayAsIterable<>(new LambdaListenerAdapter(configuring))));
+    }
+
+    public Cmd(boolean cleanUp, String outputFileName, Listening listening) {
         this.cleanUp = cleanUp;
         this.outputFileName = outputFileName;
-        this.listeners = listeners;
-    }
-
-    public Cmd listeners(LambdaListenerAdapter... listeners) {
-        return new Cmd(
-                cleanUp,
-                outputFileName,
-                new ConcatIterable<>(
-                        this.listeners,
-                        new ArrayAsIterable<>(listeners)));
-    }
-
-    public Cmd configureExecutor(BeforeStart lambda) {
-        return beforeStart(lambda);
-    }
-
-    public Cmd beforeStart(BeforeStart... lambdas) {
-        return new Cmd(
-                cleanUp,
-                outputFileName,
-                new ConcatIterable<>(
-                        this.listeners,
-                        new MappedIterable<>(
-                                new ArrayAsIterable<>(lambdas),
-                                LambdaListenerAdapter::new)));
-    }
-
-    public Cmd afterStart(AfterStart... lambdas) {
-        return new Cmd(
-                cleanUp,
-                outputFileName,
-                new ConcatIterable<>(
-                        this.listeners,
-                        new MappedIterable<>(
-                                new ArrayAsIterable<>(lambdas),
-                                LambdaListenerAdapter::new)));
-    }
-
-    public Cmd afterFinish(AfterFinish... lambdas) {
-        return new Cmd(
-                cleanUp,
-                outputFileName,
-                new ConcatIterable<>(
-                        this.listeners,
-                        new MappedIterable<>(
-                                new ArrayAsIterable<>(lambdas),
-                                LambdaListenerAdapter::new)));
-    }
-
-    public Cmd afterStop(AfterStop... lambdas) {
-        return new Cmd(
-                cleanUp,
-                outputFileName,
-                new ConcatIterable<>(
-                        this.listeners,
-                        new MappedIterable<>(
-                                new ArrayAsIterable<>(lambdas),
-                                LambdaListenerAdapter::new)));
+        this.listening = listening;
     }
 
     /**
@@ -103,53 +44,35 @@ public class Cmd {
      * @param cleanUp
      * @return
      */
+    @Override
     public Cmd cleanUp(boolean cleanUp) {
-        return new Cmd(cleanUp, outputFileName, listeners);
+        return new Cmd(cleanUp, outputFileName, listening);
     }
 
+    @Override
     public Cmd outputFileName(String outputFileName) {
-        return new Cmd(cleanUp, outputFileName, listeners);
+        return new Cmd(cleanUp, outputFileName, listening);
     }
 
-    /**
-     * See {@link ProcessExecutor#execute()}
-     * <p>
-     * Note: Windows OS doesn't supported, use {@link #execute(String...)}} instead
-     */
-    public ProcessResult executeInShell(String script) throws IOException, TimeoutException, InterruptedException, InvalidExitValueException {
-        return execute("sh", "-c", script);
+    @Override
+    public CmdListening listening() {
+        return new Listening(this, listening.listeners);
     }
 
-    /**
-     * See {@link ProcessExecutor#execute()}
-     */
-    public ProcessResult execute(String... command) throws IOException, TimeoutException, InterruptedException, InvalidExitValueException {
-        return executor(command).execute();
+    @Override
+    public Executing executing() {
+        return new BaseExecuting(processExecutor());
     }
 
-    /**
-     * See {@link ProcessExecutor#executeNoTimeout()}
-     */
-    public ProcessResult executeNoTimeout(String... command) throws IOException, InterruptedException, InvalidExitValueException {
-        return executor(command).executeNoTimeout();
-    }
-
-    /**
-     * See {@link ProcessExecutor#start()}
-     */
-    public StartedProcess start(String... command) throws IOException {
-        return executor(command).start();
-    }
-
-    private ProcessExecutor executor(final String ...command) throws IOException {
-        final ProcessExecutor executor = new ProcessExecutor(command);
-        for (LambdaListenerAdapter listener : listeners) {
+    private ProcessExecutor processExecutor() {
+        final ProcessExecutor executor = new ProcessExecutor();
+        for (LambdaListenerAdapter listener : listening.listeners) {
             executor.addListener(listener);
         }
-        return executor.addListener(cmdListener(cleanUp, outputFileName));
+        return executor.addListener(baseListener(cleanUp, outputFileName));
     }
 
-    private ProcessListener cmdListener(boolean cleanUp, String outputFileName) {
+    private ProcessListener baseListener(boolean cleanUp, String outputFileName) {
         return new ProcessListener() {
             @Override
             public void beforeStart(ProcessExecutor executor) {
@@ -159,16 +82,16 @@ public class Cmd {
                     if (!workDirCreated)
                         throw new UncheckedIOException(
                                 new IOException(String.format("Work directory %s can not be created", dir.toPath())));
-                    if (cleanUp && workDirCreated) {
+                    if (cleanUp) {
                         executor.addListener(deleteDirAfterStop(dir));
                     }
                 }
                 if (outputFileName != null && outputFileName.length() > 0) {
-                    executor.redirectOutputAlsoTo(createFileOS(dir)); //output stream will be closed by executor
+                    executor.redirectOutputAlsoTo(createFileOS(dir)); //output stream will be closed by processExecutor
                 }
             }
 
-            private OutputStream createFileOS(File workDir){
+            private OutputStream createFileOS(File workDir) {
                 Path outputFile;
                 if (workDir != null) {
                     outputFile = Paths.get(workDir.getPath(), outputFileName);
@@ -200,5 +123,64 @@ public class Cmd {
                 };
             }
         };
+    }
+
+    private static final class Listening implements CmdListening {
+        private final Cmd owner;
+        private final Iterable<LambdaListenerAdapter> listeners;
+
+        public Listening(Cmd owner, Iterable<LambdaListenerAdapter> listeners) {
+            this.owner = owner;
+            this.listeners = listeners;
+        }
+
+        @Override
+        public CmdListening beforeStart(LambdaListenerAdapter.BeforeStart... lambdas) {
+            return new Listening(
+                    owner,
+                    new ConcatIterable<>(
+                            this.listeners,
+                            new MappedIterable<>(
+                                    new ArrayAsIterable<>(lambdas),
+                                    LambdaListenerAdapter::new)));
+        }
+
+        @Override
+        public CmdListening afterStart(LambdaListenerAdapter.AfterStart... lambdas) {
+            return new Listening(
+                    owner,
+                    new ConcatIterable<>(
+                            this.listeners,
+                            new MappedIterable<>(
+                                    new ArrayAsIterable<>(lambdas),
+                                    LambdaListenerAdapter::new)));
+        }
+
+        @Override
+        public CmdListening afterFinish(LambdaListenerAdapter.AfterFinish... lambdas) {
+            return new Listening(
+                    owner,
+                    new ConcatIterable<>(
+                            this.listeners,
+                            new MappedIterable<>(
+                                    new ArrayAsIterable<>(lambdas),
+                                    LambdaListenerAdapter::new)));
+        }
+
+        @Override
+        public CmdListening afterStop(LambdaListenerAdapter.AfterStop... lambdas) {
+            return new Listening(
+                    owner,
+                    new ConcatIterable<>(
+                            this.listeners,
+                            new MappedIterable<>(
+                                    new ArrayAsIterable<>(lambdas),
+                                    LambdaListenerAdapter::new)));
+        }
+
+        @Override
+        public Cmd back() {
+            return new Cmd(owner.cleanUp, owner.outputFileName, this);
+        }
     }
 }

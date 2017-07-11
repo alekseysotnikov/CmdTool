@@ -16,12 +16,11 @@ import java.util.concurrent.TimeoutException;
 import static org.junit.Assert.*;
 
 public class CmdTest {
-
     @Test
     public void execute() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd()
-                        .configureExecutor(e -> e.readOutput(true))
+                new Cmd(e -> e.readOutput(true))
+                        .executing()
                         .execute("echo", "Hello")
                         .outputUTF8());
     }
@@ -29,8 +28,8 @@ public class CmdTest {
     @Test
     public void executeNoTimeout() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd()
-                        .configureExecutor(e -> e.readOutput(true))
+                new Cmd(e -> e.readOutput(true))
+                        .executing()
                         .executeNoTimeout("echo", "Hello")
                         .outputUTF8());
     }
@@ -38,8 +37,8 @@ public class CmdTest {
     @Test
     public void start() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd()
-                        .configureExecutor(e -> e.readOutput(true))
+                new Cmd(e -> e.readOutput(true))
+                        .executing()
                         .start("echo", "Hello")
                         .getFuture()
                         .get()
@@ -49,8 +48,8 @@ public class CmdTest {
     @Test
     public void executeScript() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd()
-                        .configureExecutor(e -> e.readOutput(true))
+                new Cmd(e -> e.readOutput(true))
+                        .executing()
                         .executeInShell("s='Hello'; echo $s;")
                         .outputUTF8());
     }
@@ -61,8 +60,8 @@ public class CmdTest {
 
         assertFalse(workDir.exists());
 
-        new Cmd()
-                .configureExecutor(e -> e.directory(workDir))
+        new Cmd(e -> e.directory(workDir))
+                .executing()
                 .execute("echo", "hello world");
 
         assertTrue(workDir.exists());
@@ -74,9 +73,9 @@ public class CmdTest {
 
         assertFalse(workDir.exists());
 
-        new Cmd()
-                .configureExecutor(e -> e.directory(workDir))
+        new Cmd(e -> e.directory(workDir))
                 .cleanUp(true)
+                .executing()
                 .execute("echo", "hello world");
 
         assertFalse("Directory should be deleted", workDir.exists());
@@ -86,9 +85,9 @@ public class CmdTest {
     public void outputFile() throws Exception {
         Path execDir = generateRandomPath();
         String outputFileName = "test.output";
-        new Cmd()
-                .configureExecutor(e -> e.directory(execDir.toFile()))
+        new Cmd(e -> e.directory(execDir.toFile()))
                 .outputFileName(outputFileName)
+                .executing()
                 .execute("echo", "hello world");
         assertTrue("Output file should be exists", Paths.get(execDir.toString(), outputFileName).toFile().exists());
     }
@@ -98,12 +97,15 @@ public class CmdTest {
         ArrayList<String> lines = new ArrayList<>();
         final String arg = "line1";
         new Cmd()
-                .configureExecutor(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
+                .listening()
+                .beforeStart(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
                     @Override
                     protected void processLine(String line) {
                         lines.add(line);
                     }
                 }))
+                .back()
+                .executing()
                 .execute("echo", arg);
 
         assertEquals(1, lines.size());
