@@ -49,9 +49,9 @@ new Cmd()
 ````java
 new Cmd()
         .listening()
-        .beforeStart(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo. It will be created automatically
+        .beforeStart(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo
         .afterStop(process -> {
-            //work directory ./foo will be exists here and not deleted yet.
+            //work directory ./foo will be exists here
         })
         .back()
         .cleanUp(true)
