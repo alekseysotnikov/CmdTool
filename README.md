@@ -24,16 +24,16 @@ This library solves this small problem and intended to call each command inside 
 ### Examples
 > Execute command
 ````java
-new Cmd().execute("echo", "Hello");
+new Cmd().executing().execute("echo", "Hello");
 ````
 > Execute script in a Shell
 ````java
-new Cmd().executeInShell("s='Hello'; echo $s;");
+new Cmd().executing().executeInShell("s='Hello'; echo $s;");
 ````
 > Execute script and read output
 ````java
-String output = new Cmd()
-                     .configureExecutor(e -> e.readOutput(true))
+String output = new Cmd(e -> e.readOutput(true))
+                     .executing()
                      .executeInShell("s='Hello'; echo $s;")
                      .outputUTF8();
 System.out.println(output);
@@ -44,21 +44,25 @@ System.out.println(output);
 ```java
 new Cmd()
       .outputFileName("output.txt")
+      .executing()
       .execute("echo", "Hello");
 ````
 > Create work directory before start and delete after finish
 ````java
 new Cmd()
-        .configureExecutor(e -> e.directory(new File("./", "foo")))
+        .listening()
+        .beforeStart(e -> e.directory(new File("./", "foo")))
         .afterStop(process -> {
             //work directory ./foo exists here and not deleted yet.
         })
+        .back()
         .cleanUp(true)
+        .executing()
         .execute("echo", "hello world"); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
 ````
 > Run in a background
 ````java
-StartedProcess startedProcess = new Cmd().start("echo", "Hello");
+StartedProcess startedProcess = new Cmd().executing().start("echo", "Hello");
 startedProcess.getFuture().get(); //wait result
 ````
