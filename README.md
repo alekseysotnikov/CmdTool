@@ -22,8 +22,21 @@ This library solves this small problem and intended to call each command inside 
 - Clean up disk space from a produced data automatically
 
 ### Download
-Get the [latest version here](https://github.com/alekseysotnikov/CmdTool/releases)
+1. Get the [latest version here](https://github.com/alekseysotnikov/CmdTool/releases) with or without dependencies
+2. Dependencies
+````xml
+<dependency>
+  <groupId>org.zeroturnaround</groupId>
+  <artifactId>zt-exec</artifactId>
+  <version>1.9</version>
+</dependency>
 
+<dependency>
+  <groupId>org.cactoos</groupId>
+  <artifactId>cactoos</artifactId>
+  <version>0.11</version>
+</dependency>
+````
 ### Examples
 > Execute command
 ````java
