@@ -22,7 +22,7 @@ This library solves this small problem and intended to call each command inside 
 - Clean up disk space from a produced data automatically
 
 ### Download
-Get the latest version here https://github.com/alekseysotnikov/CmdTool/releases
+Get the [latest version here](https://github.com/alekseysotnikov/CmdTool/releases)
 
 ### Examples
 > Execute command
