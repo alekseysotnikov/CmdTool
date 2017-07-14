@@ -67,11 +67,9 @@ new Cmd()
 new Cmd()
         .configuring(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo
         .cleanUp(true)
-        .listening()
-        .afterStop(process -> {
+        .listening().afterStop(process -> {
             //work directory ./foo will be exists here
-        })
-        .back()
+        }).back()
         .command("echo", "hello world").execute(); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
 ````
