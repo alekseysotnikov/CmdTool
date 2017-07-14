@@ -19,27 +19,30 @@ public class CmdTest {
     @Test
     public void execute() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd(e -> e.readOutput(true))
-                        .executing()
-                        .execute("echo", "Hello")
+                new Cmd()
+                        .configuring(e -> e.readOutput(true))
+                        .command("echo", "Hello")
+                        .execute()
                         .outputUTF8());
     }
 
     @Test
     public void executeNoTimeout() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd(e -> e.readOutput(true))
-                        .executing()
-                        .executeNoTimeout("echo", "Hello")
+                new Cmd()
+                        .configuring(e -> e.readOutput(true))
+                        .command("echo", "Hello")
+                        .executeNoTimeout()
                         .outputUTF8());
     }
 
     @Test
     public void start() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd(e -> e.readOutput(true))
-                        .executing()
-                        .start("echo", "Hello")
+                new Cmd()
+                        .configuring(e -> e.readOutput(true))
+                        .command("echo", "Hello")
+                        .start()
                         .getFuture()
                         .get()
                         .outputUTF8());
@@ -48,9 +51,10 @@ public class CmdTest {
     @Test
     public void executeScript() throws Exception {
         Assert.assertEquals("Hello\n",
-                new Cmd(e -> e.readOutput(true))
-                        .executing()
-                        .executeInShell("s='Hello'; echo $s;")
+                new Cmd()
+                        .configuring(e -> e.readOutput(true))
+                        .script("s='Hello'; echo $s;")
+                        .execute()
                         .outputUTF8());
     }
 
@@ -60,9 +64,10 @@ public class CmdTest {
 
         assertFalse(workDir.exists());
 
-        new Cmd(e -> e.directory(workDir))
-                .executing()
-                .execute("echo", "hello world");
+        new Cmd()
+                .configuring(e -> e.directory(workDir))
+                .command("echo", "hello world")
+                .execute();
 
         assertTrue(workDir.exists());
     }
@@ -73,10 +78,11 @@ public class CmdTest {
 
         assertFalse(workDir.exists());
 
-        new Cmd(e -> e.directory(workDir))
+        new Cmd()
+                .configuring(e -> e.directory(workDir))
                 .cleanUp(true)
-                .executing()
-                .execute("echo", "hello world");
+                .command("echo", "hello world")
+                .execute();
 
         assertFalse("Directory should be deleted", workDir.exists());
     }
@@ -85,10 +91,11 @@ public class CmdTest {
     public void outputFile() throws Exception {
         Path execDir = generateRandomPath();
         String outputFileName = "test.output";
-        new Cmd(e -> e.directory(execDir.toFile()))
+        new Cmd()
+                .configuring(e -> e.directory(execDir.toFile()))
                 .outputFileName(outputFileName)
-                .executing()
-                .execute("echo", "hello world");
+                .command("echo", "hello world")
+                .execute();
         assertTrue("Output file should be exists", Paths.get(execDir.toString(), outputFileName).toFile().exists());
     }
 
@@ -105,8 +112,8 @@ public class CmdTest {
                     }
                 }))
                 .back()
-                .executing()
-                .execute("echo", arg);
+                .command("echo", arg)
+                .execute();
 
         assertEquals(1, lines.size());
         assertEquals(arg, lines.get(0));

@@ -5,7 +5,21 @@ public interface ICmd {
 
     Cmd outputFileName(String outputFileName);
 
+    Cmd configuring(LambdaListenerAdapter.BeforeStart configuring);
+
     CmdListening listening();
 
-    Executing executing();
+    /**
+     * Create executable shell script
+     * <p>
+     * Note: Windows OS doesn't supported, use {@link #command(String...)}} instead
+     */
+    Command script(String script);
+
+    /**
+     * Create executable command
+     * @param command
+     * @return
+     */
+    Command command(String... command);
 }

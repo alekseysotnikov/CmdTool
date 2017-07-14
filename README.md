@@ -40,16 +40,17 @@ This library solves this small problem and intended to call each command inside 
 ### Examples
 > Execute command
 ````java
-new Cmd().executing().execute("echo", "Hello");
+new Cmd().command("echo", "Hello").execute();
 ````
 > Execute script in a Shell
 ````java
-new Cmd().executing().executeInShell("s='Hello'; echo $s;");
+new Cmd().script("s='Hello'; echo $s;").execute();
 ````
 > Execute script and read output
 ````java
-String output = new Cmd(e -> e.readOutput(true))
-                     .executing().executeInShell("s='Hello'; echo $s;")
+String output = new Cmd()
+                     .configuring(e -> e.readOutput(true))
+                     .script("s='Hello'; echo $s;").execute()
                      .outputUTF8();
 System.out.println(output);
 
@@ -59,23 +60,23 @@ System.out.println(output);
 ```java
 new Cmd()
       .outputFileName("output.txt")
-      .executing().execute("echo", "Hello");
+      .command("echo", "Hello").execute();
 ````
 > Create work directory before start and delete after finish
 ````java
 new Cmd()
+        .configuring(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo
+        .cleanUp(true)
         .listening()
-        .beforeStart(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo
         .afterStop(process -> {
             //work directory ./foo will be exists here
         })
         .back()
-        .cleanUp(true)
-        .executing().execute("echo", "hello world"); // work directory ./foo will be created automatically
+        .command("echo", "hello world").execute(); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
 ````
 > Run in a background
 ````java
-StartedProcess startedProcess = new Cmd().executing().start("echo", "Hello");
+StartedProcess startedProcess = new Cmd().command("echo", "Hello").start();
 startedProcess.getFuture().get(); //wait result
 ````

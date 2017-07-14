@@ -23,19 +23,20 @@ public final class Cmd implements ICmd {
     private final boolean cleanUp;
     private final String outputFileName;
     private final Listening listening;
+    private final LambdaListenerAdapter.BeforeStart configuring;
 
     public Cmd() {
-        this(false, "", new Listening(null, new ArrayAsIterable<>()));
+        this(false,
+                "",
+                new Listening(null, new ArrayAsIterable<>()),
+                e -> {});
     }
 
-    public Cmd(LambdaListenerAdapter.BeforeStart configuring) {
-        this(false, "", new Listening(null, new ArrayAsIterable<>(new LambdaListenerAdapter(configuring))));
-    }
-
-    public Cmd(boolean cleanUp, String outputFileName, Listening listening) {
+    public Cmd(boolean cleanUp, String outputFileName, Listening listening, LambdaListenerAdapter.BeforeStart configuring) {
         this.cleanUp = cleanUp;
         this.outputFileName = outputFileName;
         this.listening = listening;
+        this.configuring = configuring;
     }
 
     /**
@@ -46,12 +47,17 @@ public final class Cmd implements ICmd {
      */
     @Override
     public Cmd cleanUp(boolean cleanUp) {
-        return new Cmd(cleanUp, outputFileName, listening);
+        return new Cmd(cleanUp, outputFileName, listening, configuring);
     }
 
     @Override
     public Cmd outputFileName(String outputFileName) {
-        return new Cmd(cleanUp, outputFileName, listening);
+        return new Cmd(cleanUp, outputFileName, listening, configuring);
+    }
+
+    @Override
+    public Cmd configuring(LambdaListenerAdapter.BeforeStart configuring) {
+        return new Cmd(cleanUp, outputFileName, listening, configuring);
     }
 
     @Override
@@ -60,16 +66,21 @@ public final class Cmd implements ICmd {
     }
 
     @Override
-    public Executing executing() {
-        return new BaseExecuting(processExecutor());
+    public Command script(String script) {
+        return command("sh", "-c", script);
     }
 
-    private ProcessExecutor processExecutor() {
+    public Command command(String... command) {
+        return new BaseCommand(processExecutor(command));
+    }
+
+    private ProcessExecutor processExecutor(String... command) {
         final ProcessExecutor executor = new ProcessExecutor();
+        configuring.run(executor);
         for (LambdaListenerAdapter listener : listening.listeners) {
             executor.addListener(listener);
         }
-        return executor.addListener(baseListener(cleanUp, outputFileName));
+        return executor.command(command).addListener(baseListener(cleanUp, outputFileName));
     }
 
     private ProcessListener baseListener(boolean cleanUp, String outputFileName) {
@@ -180,7 +191,7 @@ public final class Cmd implements ICmd {
 
         @Override
         public Cmd back() {
-            return new Cmd(owner.cleanUp, owner.outputFileName, this);
+            return new Cmd(owner.cleanUp, owner.outputFileName, this, owner.configuring);
         }
     }
 }
