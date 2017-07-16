@@ -43,7 +43,7 @@ public final class Cmd implements ICmd {
     }
 
     /**
-     * Delete work directory after process stopped, only if it has been created during the execution
+     * Delete work directory after process stopped, only if the directory will be created during the execution
      *
      * @param cleanUp
      * @return
