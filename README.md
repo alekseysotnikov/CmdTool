@@ -52,7 +52,7 @@ or shorter
 ````java
 new Cmd().command("sh", "-c", "s='Hello'; echo $s;").execute();
 ````
-> Execute script and read output (Unix-like, Mac OS)
+> Execute script in a Shell (Unix-like, Mac OS) and read output 
 ````java
 String output = new Cmd()
                      .configuring(e -> e.readOutput(true))
