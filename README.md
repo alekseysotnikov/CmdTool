@@ -73,7 +73,7 @@ new Cmd()
 ````java
 new Cmd()
         .configuring(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo
-        .cleanUp(true)
+        .cleanUp(true) // delete work directory after process stopped, only if it has been created during the execution
         .listening().afterStop(process -> {
             //work directory ./foo will be exists here
         }).back()
