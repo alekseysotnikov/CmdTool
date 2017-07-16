@@ -37,4 +37,13 @@ final class BaseCommand implements Command {
     public StartedProcess start() throws IOException {
         return processExecutor.start();
     }
+
+    /**
+     * Get the command line as a string
+     * @return
+     */
+    @Override
+    public String toString() {
+        return String.join(" ", processExecutor.getCommand());
+    }
 }
