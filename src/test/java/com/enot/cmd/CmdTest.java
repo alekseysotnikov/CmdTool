@@ -1,6 +1,8 @@
 package com.enot.cmd;
 
 import com.enot.cmd.core.Cmd;
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsSame;
 import org.junit.Assert;
 import org.junit.Test;
 import org.zeroturnaround.exec.stream.LogOutputStream;
@@ -10,12 +12,23 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.*;
 
 public class CmdTest {
+    @Test
+    public void interpreterCommandLine() {
+        Assert.assertThat(
+                new Cmd()
+                        .interpreter("sh")
+                        .command("-c", "echo Hello;")
+                        .commandLine(),
+                new IsEqual<>(Arrays.asList("sh", "-c", "echo Hello;")));
+    }
+
     @Test
     public void execute() throws Exception {
         Assert.assertEquals("Hello\n",
@@ -53,7 +66,8 @@ public class CmdTest {
         Assert.assertEquals("Hello\n",
                 new Cmd()
                         .configuring(e -> e.readOutput(true))
-                        .script("s='Hello'; echo $s;")
+                        .interpreter("sh")
+                        .command("-c", "s='Hello'; echo $s;")
                         .execute()
                         .outputUTF8());
     }

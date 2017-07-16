@@ -24,19 +24,22 @@ public final class Cmd implements ICmd {
     private final String outputFileName;
     private final Listening listening;
     private final LambdaListenerAdapter.BeforeStart configuring;
+    private final String interpreter;
 
     public Cmd() {
         this(false,
                 "",
                 new Listening(null, new ArrayAsIterable<>()),
-                e -> {});
+                e -> {},
+                "");
     }
 
-    public Cmd(boolean cleanUp, String outputFileName, Listening listening, LambdaListenerAdapter.BeforeStart configuring) {
+    public Cmd(boolean cleanUp, String outputFileName, Listening listening, LambdaListenerAdapter.BeforeStart configuring, String interpreter) {
         this.cleanUp = cleanUp;
         this.outputFileName = outputFileName;
         this.listening = listening;
         this.configuring = configuring;
+        this.interpreter = interpreter;
     }
 
     /**
@@ -47,17 +50,17 @@ public final class Cmd implements ICmd {
      */
     @Override
     public Cmd cleanUp(boolean cleanUp) {
-        return new Cmd(cleanUp, outputFileName, listening, configuring);
+        return new Cmd(cleanUp, outputFileName, listening, configuring, interpreter);
     }
 
     @Override
     public Cmd outputFileName(String outputFileName) {
-        return new Cmd(cleanUp, outputFileName, listening, configuring);
+        return new Cmd(cleanUp, outputFileName, listening, configuring, interpreter);
     }
 
     @Override
     public Cmd configuring(LambdaListenerAdapter.BeforeStart configuring) {
-        return new Cmd(cleanUp, outputFileName, listening, configuring);
+        return new Cmd(cleanUp, outputFileName, listening, configuring, interpreter);
     }
 
     @Override
@@ -66,8 +69,8 @@ public final class Cmd implements ICmd {
     }
 
     @Override
-    public Command script(String script) {
-        return command("sh", "-c", script);
+    public Cmd interpreter(String interpreter) {
+        return new Cmd(cleanUp, outputFileName, listening, configuring, interpreter);
     }
 
     public Command command(String... command) {
@@ -75,12 +78,17 @@ public final class Cmd implements ICmd {
     }
 
     private ProcessExecutor processExecutor(String... command) {
-        final ProcessExecutor executor = new ProcessExecutor();
+        ProcessExecutor executor = new ProcessExecutor();
         configuring.run(executor);
         for (LambdaListenerAdapter listener : listening.listeners) {
             executor.addListener(listener);
         }
-        return executor.command(command).addListener(baseListener(cleanUp, outputFileName));
+
+        Iterable<String> commands = new ArrayAsIterable<>(command);
+        if (interpreter != null && !interpreter.trim().isEmpty()) {
+            commands = new ConcatIterable<>(new ArrayAsIterable<>(interpreter), commands);
+        }
+        return executor.command(commands).addListener(baseListener(cleanUp, outputFileName));
     }
 
     private ProcessListener baseListener(boolean cleanUp, String outputFileName) {
@@ -191,7 +199,7 @@ public final class Cmd implements ICmd {
 
         @Override
         public Cmd back() {
-            return new Cmd(owner.cleanUp, owner.outputFileName, this, owner.configuring);
+            return new Cmd(owner.cleanUp, owner.outputFileName, this, owner.configuring, owner.interpreter);
         }
     }
 }

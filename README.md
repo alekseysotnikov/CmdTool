@@ -42,15 +42,22 @@ This library solves this small problem and intended to call each command inside 
 ````java
 new Cmd().command("echo", "Hello").execute();
 ````
-> Execute script in a Shell
+> Execute script in a Shell (Unix-like, Mac OS)
 ````java
-new Cmd().script("s='Hello'; echo $s;").execute();
+new Cmd()
+       .interpreter("sh") // specify command interpreter
+       .command("-c", "s='Hello'; echo $s;").execute();
 ````
-> Execute script and read output
+or shorter
+````java
+new Cmd().command("sh", "-c", "s='Hello'; echo $s;").execute();
+````
+> Execute script and read output (Unix-like, Mac OS)
 ````java
 String output = new Cmd()
                      .configuring(e -> e.readOutput(true))
-                     .script("s='Hello'; echo $s;").execute()
+                     .interpreter("sh")
+                     .command("-c", "s='Hello'; echo $s;").execute()
                      .outputUTF8();
 System.out.println(output);
 

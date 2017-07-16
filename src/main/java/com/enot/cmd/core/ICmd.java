@@ -10,11 +10,9 @@ public interface ICmd {
     CmdListening listening();
 
     /**
-     * Create executable shell script
-     * <p>
-     * Note: Windows OS doesn't supported, use {@link #command(String...)}} instead
+     * Specify command interpreter
      */
-    Command script(String script);
+    Cmd interpreter(String interpreter);
 
     /**
      * Create executable command
