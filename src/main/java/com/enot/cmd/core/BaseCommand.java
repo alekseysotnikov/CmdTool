@@ -5,6 +5,7 @@ import org.zeroturnaround.exec.ProcessResult;
 import org.zeroturnaround.exec.StartedProcess;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 final class BaseCommand implements Command {
@@ -36,5 +37,10 @@ final class BaseCommand implements Command {
     @Override
     public StartedProcess start() throws IOException {
         return processExecutor.start();
+    }
+
+    @Override
+    public List<String> commandLine() {
+        return processExecutor.getCommand();
     }
 }
