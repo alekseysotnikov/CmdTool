@@ -13,7 +13,7 @@ Java 8+ required.
 When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
 So, we have to do a clean up of disk space if files don't need anymore, just like Java GC frees RAM automatically.
 
-This library solves this small problem and intended to call each command inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after the finish and after stop process). 
+This library solves this small problem and intended to call each command inside a separate work directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after the finish and after stop process). 
 
 ### Features
 - Execute command or script
@@ -48,14 +48,14 @@ new Cmd()
        .interpreter("sh") // specify command interpreter
        .command("-c", "s='Hello'; echo $s;").execute();
 ````
-or shorter
+or even shorter
 ````java
 new Cmd().command("sh", "-c", "s='Hello'; echo $s;").execute();
 ````
-> Execute script in a Shell (Unix-like, Mac OS) and read output 
+> ... and read output 
 ````java
 String output = new Cmd()
-                     .configuring(e -> e.readOutput(true))
+                     .configuring(c -> c.readOutput(true)) // configure zt-exec's executor
                      .interpreter("sh")
                      .command("-c", "s='Hello'; echo $s;").execute()
                      .outputUTF8();
@@ -72,10 +72,10 @@ new Cmd()
 > Create work directory before start and delete after finish
 ````java
 new Cmd()
-        .configuring(e -> e.directory(new File("./", "foo"))) // specify work directory ./foo
-        .cleanUp(true) // delete work directory after process stopped, only if it has been created during the execution
+        .configuring(c -> c.directory(new File("./", "foo"))) // specify work directory ./foo
+        .cleanUp(true) // delete work directory after process stopped, only if the directory will be created during the execution
         .listening().afterStop(process -> {
-            //work directory ./foo will be exists here
+            //work directory ./foo will be exist here
         }).back()
         .command("echo", "hello world").execute(); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution

@@ -1,18 +1,18 @@
 package com.enot.cmd.core;
 
 public interface ICmd {
-    Cmd cleanUp(boolean cleanUp);
+    ICmd cleanUp(boolean cleanUp);
 
-    Cmd outputFileName(String outputFileName);
+    ICmd outputFileName(String outputFileName);
 
-    Cmd configuring(LambdaListenerAdapter.BeforeStart configuring);
+    ICmd configuring(LambdaListenerAdapter.BeforeStart configuring);
 
     CmdListening listening();
 
     /**
      * Specify command interpreter
      */
-    Cmd interpreter(String interpreter);
+    ICmd interpreter(String interpreter);
 
     /**
      * Create executable command
