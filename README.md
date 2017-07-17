@@ -52,7 +52,7 @@ or even shorter
 ````java
 new Cmd().command("sh", "-c", "s='Hello'; echo $s;").execute();
 ````
-> Execute script in a Shell (Unix-like, Mac OS) and read output 
+> ... and read output 
 ````java
 String output = new Cmd()
                      .configuring(c -> c.readOutput(true)) // configure zt-exec's executor
