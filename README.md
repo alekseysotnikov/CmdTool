@@ -28,13 +28,13 @@ This library solves this small problem and intended to call each command inside 
 <dependency>
   <groupId>org.zeroturnaround</groupId>
   <artifactId>zt-exec</artifactId>
-  <version>1.9</version>
+  <version>1.10</version>
 </dependency>
 
 <dependency>
   <groupId>org.cactoos</groupId>
   <artifactId>cactoos</artifactId>
-  <version>0.11</version>
+  <version>0.11.10</version>
 </dependency>
 ````
 ### Examples
