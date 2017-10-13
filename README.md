@@ -7,15 +7,12 @@ Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https
 
 Java 8+ required.
 
-**Note**: it is an early alpha version, the API may change.
-
 ### Motivation
 When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
 So, we have to do a clean up of disk space if files don't need anymore, just like Java GC frees RAM automatically.
 
-This library solves this small problem and intended to call each command inside a separate work directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after the finish and after stop process). 
-
 ### Features
+All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are supported plus the following:
 - Execute command or script
 - Save output stream of the process into a file
 - Create work directory automatically
@@ -69,7 +66,7 @@ new Cmd()
       .outputFileName("output.txt")
       .command("echo", "Hello").execute();
 ````
-> Create work directory before start and delete after finish
+>  Execute command inside a separate work directory. It creates work directory before start and delete after finish
 ````java
 new Cmd()
         .configuring(c -> c.directory(new File("./", "foo"))) // specify work directory ./foo
@@ -80,7 +77,7 @@ new Cmd()
         .command("echo", "hello world").execute(); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
 ````
-> Run in a background
+> Run command in a background
 ````java
 StartedProcess startedProcess = new Cmd().command("echo", "Hello").start();
 startedProcess.getFuture().get(); //wait result
