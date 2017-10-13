@@ -3,20 +3,19 @@
 [![Build Status](https://travis-ci.org/alekseysotnikov/CmdTool.svg?branch=master)](https://travis-ci.org/alekseysotnikov/CmdTool) [![codecov](https://codecov.io/gh/alekseysotnikov/CmdTool/branch/master/graph/badge.svg)](https://codecov.io/gh/alekseysotnikov/CmdTool)
 
 ### Quick Overview
-Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around a process execution. All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are still available for usage along with CmdTool.
+Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around a process execution.
 
 Java 8+ required.
 
 ### Motivation
 When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
-So, we have to do a clean up of disk space if files don't need anymore, just like Java GC frees RAM automatically.
+So, we have to do a clean up of disk space if the files don't need anymore, just like Java GC frees a RAM automatically.
 
 ### Features
 All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are supported plus the following:
 - Execute command or script
 - Save output stream of the process into a file
-- Create work directory automatically
-- Clean up disk space from a produced data automatically
+- Create and clean up work directory automatically
 
 ### Download
 1. Get the [latest version here](https://github.com/alekseysotnikov/CmdTool/releases) with or without dependencies
