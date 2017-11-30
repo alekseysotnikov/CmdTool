@@ -3,23 +3,19 @@
 [![Build Status](https://travis-ci.org/alekseysotnikov/CmdTool.svg?branch=master)](https://travis-ci.org/alekseysotnikov/CmdTool) [![codecov](https://codecov.io/gh/alekseysotnikov/CmdTool/branch/master/graph/badge.svg)](https://codecov.io/gh/alekseysotnikov/CmdTool)
 
 ### Quick Overview
-Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around a process execution. All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are still available for usage along with CmdTool.
+Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around a process execution.
 
 Java 8+ required.
 
-**Note**: it is an early alpha version, the API may change.
-
 ### Motivation
 When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
-So, we have to do a clean up of disk space if files don't need anymore, just like Java GC frees RAM automatically.
-
-This library solves this small problem and intended to call each command inside a separate directory. It performs particular activities with the directory, such as creating or deleting on appropriate stages of execution (before/after start, after the finish and after stop process). 
+So, we have to do a clean up of disk space if the files don't need anymore, just like Java GC frees a RAM automatically.
 
 ### Features
+All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are supported plus the following:
 - Execute command or script
 - Save output stream of the process into a file
-- Create work directory automatically
-- Clean up disk space from a produced data automatically
+- Create and clean up work directory automatically
 
 ### Download
 1. Get the [latest version here](https://github.com/alekseysotnikov/CmdTool/releases) with or without dependencies
@@ -28,13 +24,13 @@ This library solves this small problem and intended to call each command inside 
 <dependency>
   <groupId>org.zeroturnaround</groupId>
   <artifactId>zt-exec</artifactId>
-  <version>1.9</version>
+  <version>1.10</version>
 </dependency>
 
 <dependency>
   <groupId>org.cactoos</groupId>
   <artifactId>cactoos</artifactId>
-  <version>0.11</version>
+  <version>0.11.10</version>
 </dependency>
 ````
 ### Examples
@@ -48,14 +44,14 @@ new Cmd()
        .interpreter("sh") // specify command interpreter
        .command("-c", "s='Hello'; echo $s;").execute();
 ````
-or shorter
+or even shorter
 ````java
 new Cmd().command("sh", "-c", "s='Hello'; echo $s;").execute();
 ````
-> Execute script in a Shell (Unix-like, Mac OS) and read output 
+> ... and read output 
 ````java
 String output = new Cmd()
-                     .configuring(e -> e.readOutput(true))
+                     .configuring(c -> c.readOutput(true)) // configure zt-exec's executor
                      .interpreter("sh")
                      .command("-c", "s='Hello'; echo $s;").execute()
                      .outputUTF8();
@@ -69,7 +65,7 @@ new Cmd()
       .outputFileName("output.txt")
       .command("echo", "Hello").execute();
 ````
-> Create work directory before start and delete after finish
+>  Execute command inside a separate work directory. It creates work directory before start and delete after finish
 ````java
 new Cmd()
         .configuring(c -> c.directory(new File("./", "foo"))) // specify work directory ./foo
@@ -80,7 +76,7 @@ new Cmd()
         .command("echo", "hello world").execute(); // work directory ./foo will be created automatically
 //work directory ./foo was deleted after execution
 ````
-> Run in a background
+> Run command in a background
 ````java
 StartedProcess startedProcess = new Cmd().command("echo", "Hello").start();
 startedProcess.getFuture().get(); //wait result
