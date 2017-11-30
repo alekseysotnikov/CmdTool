@@ -5,7 +5,6 @@ import org.cactoos.list.ArrayAsIterable;
 import org.cactoos.list.ConcatIterable;
 import org.cactoos.list.MappedIterable;
 import org.zeroturnaround.exec.ProcessExecutor;
-import org.zeroturnaround.exec.listener.ProcessListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,48 +87,16 @@ public final class Cmd implements ICmd {
         if (interpreter != null && !interpreter.trim().isEmpty()) {
             commands = new ConcatIterable<>(new ArrayAsIterable<>(interpreter), commands);
         }
-        return executor.command(commands).addListener(baseListener(cleanUp, outputFileName));
-    }
 
-    private ProcessListener baseListener(boolean cleanUp, String outputFileName) {
-        return new ProcessListener() {
-            @Override
-            public void beforeStart(ProcessExecutor executor) {
-                File dir = executor.getDirectory();
-                if (dir != null && !dir.exists()) {
-                    final boolean workDirCreated = dir.mkdirs();
-                    if (!workDirCreated)
-                        throw new UncheckedIOException(
-                                new IOException(String.format("Work directory %s can not be created", dir.toPath())));
-                    if (cleanUp) {
-                        executor.addListener(deleteDirAfterStop(dir));
-                    }
-                }
-                if (outputFileName != null && outputFileName.length() > 0) {
-                    executor.redirectOutputAlsoTo(createFileOS(dir)); //output stream will be closed by processExecutor
-                }
-            }
-
-            private OutputStream createFileOS(File workDir) {
-                Path outputFile;
-                if (workDir != null) {
-                    outputFile = Paths.get(workDir.getPath(), outputFileName);
-                } else {
-                    outputFile = Paths.get(outputFileName);
-                }
-                try {
-                    return Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
-                } catch (IOException e) {
+        LambdaListenerAdapter beforeStart = new LambdaListenerAdapter((LambdaListenerAdapter.BeforeStart) processExecutor -> {
+            File dir = processExecutor.getDirectory();
+            if (dir != null && !dir.exists()) {
+                final boolean workDirCreated = dir.mkdirs();
+                if (!workDirCreated)
                     throw new UncheckedIOException(
-                            String.format("Output file %s can not be created", outputFile),
-                            e);
-                }
-            }
-
-            private ProcessListener deleteDirAfterStop(File dir) {
-                return new ProcessListener() {
-                    @Override
-                    public void afterStop(Process process) {
+                            new IOException(String.format("Work directory %s can not be created", dir.toPath())));
+                if (cleanUp) {
+                    processExecutor.addListener(new LambdaListenerAdapter((LambdaListenerAdapter.AfterStop) p -> {
                         try {
                             FileUtils.deleteDirectory(dir);
                         } catch (IOException e) {
@@ -137,11 +104,38 @@ public final class Cmd implements ICmd {
                                     String.format("Work directory %s can not be deleted", dir.toPath()),
                                     e);
                         }
-
-                    }
-                };
+                    }));
+                }
             }
-        };
+            if (outputFileName != null && outputFileName.length() > 0) {
+                OutputStream outputStream = createFileOS(dir);
+                processExecutor.redirectOutputAlsoTo(outputStream);
+                processExecutor.addListener(new LambdaListenerAdapter((LambdaListenerAdapter.AfterStop) process -> {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }));
+            }
+        });
+        return executor.command(commands).addListener(beforeStart);
+    }
+
+    private OutputStream createFileOS(File workDir) {
+        Path outputFile;
+        if (workDir != null) {
+            outputFile = Paths.get(workDir.getPath(), outputFileName);
+        } else {
+            outputFile = Paths.get(outputFileName);
+        }
+        try {
+            return Files.newOutputStream(outputFile, StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    String.format("Output file %s can not be created", outputFile),
+                    e);
+        }
     }
 
     private static final class Listening implements CmdListening {
