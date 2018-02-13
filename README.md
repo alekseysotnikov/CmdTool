@@ -30,7 +30,7 @@ All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are support
 <dependency>
   <groupId>org.cactoos</groupId>
   <artifactId>cactoos</artifactId>
-  <version>0.11.10</version>
+  <version>0.29</version>
 </dependency>
 ````
 ### Examples

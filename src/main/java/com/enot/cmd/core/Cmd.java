@@ -1,9 +1,9 @@
 package com.enot.cmd.core;
 
 import org.apache.commons.io.FileUtils;
-import org.cactoos.list.ArrayAsIterable;
-import org.cactoos.list.ConcatIterable;
-import org.cactoos.list.MappedIterable;
+import org.cactoos.iterable.IterableOf;
+import org.cactoos.iterable.Joined;
+import org.cactoos.iterable.Mapped;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import java.io.File;
@@ -28,8 +28,9 @@ public final class Cmd implements ICmd {
     public Cmd() {
         this(false,
                 "",
-                new Listening(null, new ArrayAsIterable<>()),
-                e -> {},
+                new Listening(null, new IterableOf<>()),
+                e -> {
+                },
                 "");
     }
 
@@ -83,9 +84,9 @@ public final class Cmd implements ICmd {
             executor.addListener(listener);
         }
 
-        Iterable<String> commands = new ArrayAsIterable<>(command);
+        Iterable<String> commands = new IterableOf<>(command);
         if (interpreter != null && !interpreter.trim().isEmpty()) {
-            commands = new ConcatIterable<>(new ArrayAsIterable<>(interpreter), commands);
+            commands = new Joined<>(new IterableOf<>(interpreter), commands);
         }
 
         LambdaListenerAdapter beforeStart = new LambdaListenerAdapter((LambdaListenerAdapter.BeforeStart) processExecutor -> {
@@ -151,44 +152,40 @@ public final class Cmd implements ICmd {
         public CmdListening beforeStart(LambdaListenerAdapter.BeforeStart... lambdas) {
             return new Listening(
                     owner,
-                    new ConcatIterable<>(
+                    new Joined<>(
                             this.listeners,
-                            new MappedIterable<>(
-                                    new ArrayAsIterable<>(lambdas),
-                                    LambdaListenerAdapter::new)));
+                            new Mapped<>(LambdaListenerAdapter::new,
+                                    new IterableOf<>(lambdas))));
         }
 
         @Override
         public CmdListening afterStart(LambdaListenerAdapter.AfterStart... lambdas) {
             return new Listening(
                     owner,
-                    new ConcatIterable<>(
+                    new Joined<>(
                             this.listeners,
-                            new MappedIterable<>(
-                                    new ArrayAsIterable<>(lambdas),
-                                    LambdaListenerAdapter::new)));
+                            new Mapped<>(LambdaListenerAdapter::new,
+                                    new IterableOf<>(lambdas))));
         }
 
         @Override
         public CmdListening afterFinish(LambdaListenerAdapter.AfterFinish... lambdas) {
             return new Listening(
                     owner,
-                    new ConcatIterable<>(
+                    new Joined<>(
                             this.listeners,
-                            new MappedIterable<>(
-                                    new ArrayAsIterable<>(lambdas),
-                                    LambdaListenerAdapter::new)));
+                            new Mapped<>(LambdaListenerAdapter::new,
+                                    new IterableOf<>(lambdas))));
         }
 
         @Override
         public CmdListening afterStop(LambdaListenerAdapter.AfterStop... lambdas) {
             return new Listening(
                     owner,
-                    new ConcatIterable<>(
+                    new Joined<>(
                             this.listeners,
-                            new MappedIterable<>(
-                                    new ArrayAsIterable<>(lambdas),
-                                    LambdaListenerAdapter::new)));
+                            new Mapped<>(LambdaListenerAdapter::new,
+                                    new IterableOf<>(lambdas))));
         }
 
         @Override
