@@ -4,7 +4,7 @@
     <groupId>com.enot</groupId>
     <artifactId>CmdTool</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.1</version>
+    <version>0.3.2</version>
     <name>CmdTool</name>
     <url>http://maven.apache.org</url>
          
