@@ -1,6 +1,10 @@
 package com.enot.cmd;
 
 import com.enot.cmd.core.Cmd;
+import com.enot.cmd.listeners.CleanUp;
+import com.enot.cmd.listeners.RedirectToFile;
+import com.enot.cmd.listeners.RedirectTo;
+import com.enot.cmd.listeners.WorkDir;
 import org.junit.Test;
 import org.zeroturnaround.exec.stream.LogOutputStream;
 
@@ -17,6 +21,7 @@ import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class CmdTest {
     @Test
@@ -78,15 +83,15 @@ public class CmdTest {
 
     @Test
     public void createWorkDir() throws Exception {
-        final File workDir = generateRandomPath().toFile();
+        final File dir = generateRandomPath().toFile();
         assertThat(true, allOf(
-                is(not(workDir.exists())),
+                is(not(dir.exists())),
                 is(0 == new Cmd()
-                        .configuring(e -> e.directory(workDir))
+                        .configuring(new WorkDir(dir))
                         .command("echo", "hello world")
                         .execute()
                         .getExitValue()),
-                is(workDir.exists())
+                is(dir.exists())
         ));
     }
 
@@ -96,8 +101,29 @@ public class CmdTest {
         assertThat(true, allOf(
                 is(not(workDir.exists())),
                 is(0 == new Cmd()
-                        .configuring(e -> e.directory(workDir))
-                        .cleanUp(true)
+                        .configuring(
+                                new WorkDir(workDir),
+                                new CleanUp()
+                        )
+                        .command("echo", "hello world")
+                        .execute()
+                        .getExitValue()),
+                is(not(workDir.exists()))
+        ));
+    }
+
+    @Test
+    public void cleanUp2() throws Exception {
+        final File workDir = generateRandomPath().toFile();
+        assertThat(true, allOf(
+                is(not(workDir.exists())),
+                is(0 == new Cmd()
+                        .configuring(
+                                new WorkDir(workDir),
+                                new CleanUp()
+                        ).listening().afterStop(process -> {
+                            assertTrue("Work directory have to be exists for listeners", workDir.exists());
+                        }).back()
                         .command("echo", "hello world")
                         .execute()
                         .getExitValue()),
@@ -107,17 +133,19 @@ public class CmdTest {
 
     @Test
     public void outputFile() throws Exception {
-        final String outputFileName = "test.output";
+        final String outputPath = "./test.output";
         final File workDir = generateRandomPath().toFile();
         assertThat(true, allOf(
                 is(not(workDir.exists())),
                 is(0 == new Cmd()
-                        .configuring(e -> e.directory(workDir))
-                        .outputFileName(outputFileName)
+                        .configuring(
+                                new WorkDir(workDir),
+                                new RedirectToFile(outputPath)
+                        )
                         .command("echo", "hello world")
                         .execute()
                         .getExitValue()),
-                is(new File(workDir, outputFileName).exists())
+                is(new File(workDir, outputPath).exists())
         ));
     }
 
@@ -128,7 +156,7 @@ public class CmdTest {
         assertThat(true, allOf(
                 is(0 == new Cmd()
                         .listening()
-                        .beforeStart(e -> e.redirectOutputAlsoTo(new LogOutputStream() {
+                        .beforeStart(new RedirectTo(new LogOutputStream() {
                             @Override
                             protected void processLine(String line) {
                                 lines.add(line);

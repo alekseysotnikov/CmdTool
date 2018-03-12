@@ -1,11 +1,9 @@
 package com.enot.cmd.core;
 
+import com.enot.cmd.core.LambdaListenerAdapter.BeforeStart;
+
 public interface ICmd {
-    ICmd cleanUp(boolean cleanUp);
-
-    ICmd outputFileName(String outputFileName);
-
-    ICmd configuring(LambdaListenerAdapter.BeforeStart configuring);
+    ICmd configuring(BeforeStart... configuring);
 
     CmdListening listening();
 

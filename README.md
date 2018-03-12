@@ -42,7 +42,8 @@ new Cmd().command("echo", "Hello").execute();
 ````java
 new Cmd()
        .interpreter("sh") // specify command interpreter
-       .command("-c", "s='Hello'; echo $s;").execute();
+       .command("-c", "s='Hello'; echo $s;")
+       .execute();
 ````
 or even shorter
 ````java
@@ -52,29 +53,33 @@ new Cmd().command("sh", "-c", "s='Hello'; echo $s;").execute();
 ````java
 String output = new Cmd()
                      .configuring(c -> c.readOutput(true)) // configure zt-exec's executor
-                     .interpreter("sh")
-                     .command("-c", "s='Hello'; echo $s;").execute()
+                     .command("sh", "-c", "s='Hello'; echo $s;")
+                     .execute()
                      .outputUTF8();
 System.out.println(output);
 
 // output> Hello
 ````
-> Save output stream into a file, even if the process stopped unexpectedly
+> Save an output stream into a file, even if the process stopped unexpectedly
 ```java
 new Cmd()
-      .outputFileName("output.txt")
-      .command("echo", "Hello").execute();
+      .configuring(new RedirectToFile("./output.txt"))
+      .command("echo", "Hello")
+      .execute();
 ````
->  Execute command inside a separate work directory. It creates work directory before start and delete after finish
+>  Execute command within custom work directory
 ````java
 new Cmd()
-        .configuring(c -> c.directory(new File("./", "foo"))) // specify work directory ./foo
-        .cleanUp(true) // delete work directory after process stopped, only if the directory will be created during the execution
+        .configuring(
+                new WorkDir("./foo"), // specify work directory ./foo (will be created automatically)
+                new CleanUp() // delete work directory after process stop, only if the Cmd has created the directory
+        ) 
         .listening().afterStop(process -> {
-            //work directory ./foo will be exist here
+            System.out.println(new File("./foo").exists()); //true
         }).back()
-        .command("echo", "hello world").execute(); // work directory ./foo will be created automatically
-//work directory ./foo was deleted after execution
+        .command("echo", "hello world").execute();
+
+System.out.println(new File("./foo").exists()); // false
 ````
 > Run command in a background
 ````java
