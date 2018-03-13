@@ -104,25 +104,8 @@ public class CmdTest {
                         .configuring(
                                 new WorkDir(workDir),
                                 new CleanUp()
-                        )
-                        .command("echo", "hello world")
-                        .execute()
-                        .getExitValue()),
-                is(not(workDir.exists()))
-        ));
-    }
-
-    @Test
-    public void cleanUp2() throws Exception {
-        final File workDir = generateRandomPath().toFile();
-        assertThat(true, allOf(
-                is(not(workDir.exists())),
-                is(0 == new Cmd()
-                        .configuring(
-                                new WorkDir(workDir),
-                                new CleanUp()
                         ).listening().afterStop(process -> {
-                            assertTrue("Work directory have to be exists for listeners", workDir.exists());
+                            assertTrue("Work directory has to be exist for listeners", workDir.exists());
                         }).back()
                         .command("echo", "hello world")
                         .execute()
