@@ -11,6 +11,8 @@ Java 8+ required.
 When we call external programs from Java, we certainly need to harvest the output files and output stream. It is ok, but what if we have thousands of calls? They will pollute a disk space if some of them produce files we don't need. 
 So, we have to do a clean up of disk space if the files don't need anymore, just like Java GC frees a RAM automatically.
 
+To be honest, initial motivation was selfish. I wanted to try out on practice the [design principles](http://www.elegantobjects.org/#principles) behind [Cactoos](https://github.com/yegor256/cactoos). And as a result it grew into the tiny project here.
+
 ### Features
 All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are supported plus the following:
 - Execute command or script
