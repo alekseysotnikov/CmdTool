@@ -1,11 +1,12 @@
 package com.enot.cmd.core;
 
-import com.enot.cmd.core.LambdaListenerAdapter.BeforeStart;
+import com.enot.cmd.core.listening.BeforeStart;
+import com.enot.cmd.core.listening.Listening;
 
 public interface ICmd {
     ICmd configuring(BeforeStart... configuring);
 
-    CmdListening listening();
+    Listening listening();
 
     /**
      * Specify command interpreter

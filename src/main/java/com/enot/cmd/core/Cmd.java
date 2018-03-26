@@ -1,51 +1,52 @@
 package com.enot.cmd.core;
 
-import com.enot.cmd.core.LambdaListenerAdapter.AfterFinish;
-import com.enot.cmd.core.LambdaListenerAdapter.AfterStart;
-import com.enot.cmd.core.LambdaListenerAdapter.AfterStop;
-import com.enot.cmd.core.LambdaListenerAdapter.BeforeStart;
+import com.enot.cmd.core.listening.*;
 import org.cactoos.iterable.IterableOf;
 import org.cactoos.iterable.Joined;
 import org.cactoos.iterable.Mapped;
 import org.zeroturnaround.exec.ProcessExecutor;
+import org.zeroturnaround.exec.ProcessResult;
+import org.zeroturnaround.exec.StartedProcess;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
  * Command line representation with the additional features around a process execution
  */
 public final class Cmd implements ICmd {
-    private final Listening listening;
+    private final CmdListening cmdListening;
     private final BeforeStart[] beforeStart;
     private final String interpreter;
 
     public Cmd() {
-        this(new Listening(null, new IterableOf<>()), new BeforeStart[0], "");
+        this(new CmdListening(null, new IterableOf<>()), new BeforeStart[0], "");
     }
 
-    public Cmd(Listening listening, BeforeStart[] beforeStart, String interpreter) {
-        this.listening = listening;
+    public Cmd(CmdListening cmdListening, BeforeStart[] beforeStart, String interpreter) {
+        this.cmdListening = cmdListening;
         this.beforeStart = beforeStart;
         this.interpreter = interpreter;
     }
 
     @Override
     public Cmd configuring(BeforeStart... configuring) {
-        return new Cmd(listening, configuring, interpreter);
+        return new Cmd(cmdListening, configuring, interpreter);
     }
 
     @Override
-    public CmdListening listening() {
-        return new Listening(this, listening.listeners);
+    public Listening listening() {
+        return new CmdListening(this, cmdListening.listeners);
     }
 
     @Override
     public Cmd interpreter(String interpreter) {
-        return new Cmd(listening, beforeStart, interpreter);
+        return new Cmd(cmdListening, beforeStart, interpreter);
     }
 
     public Command command(String... command) {
@@ -61,7 +62,7 @@ public final class Cmd implements ICmd {
         List<BeforeStart> configuringAfter = configuring.getOrDefault(true, Collections.emptyList());
 
         configuringBefore.forEach(c -> c.run(executor));
-        listening.listeners.forEach(executor::addListener);
+        cmdListening.listeners.forEach(executor::addListener);
         configuringAfter.forEach(c -> c.run(executor));
 
         Iterable<String> commands = new IterableOf<>(command);
@@ -72,34 +73,34 @@ public final class Cmd implements ICmd {
     }
 
 
-    private static final class Listening implements CmdListening {
+    private static final class CmdListening implements Listening {
         private final Cmd owner;
         private final Iterable<LambdaListenerAdapter> listeners;
 
-        public Listening(Cmd owner, BeforeStart... lambdas) {
+        public CmdListening(Cmd owner, BeforeStart... lambdas) {
             this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
         }
 
-        public Listening(Cmd owner, AfterStart... lambdas) {
+        public CmdListening(Cmd owner, AfterStart... lambdas) {
             this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
         }
 
-        public Listening(Cmd owner, AfterFinish... lambdas) {
+        public CmdListening(Cmd owner, AfterFinish... lambdas) {
             this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
         }
 
-        public Listening(Cmd owner, AfterStop... lambdas) {
+        public CmdListening(Cmd owner, AfterStop... lambdas) {
             this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
         }
 
-        public Listening(Cmd owner, Iterable<LambdaListenerAdapter> listeners) {
+        public CmdListening(Cmd owner, Iterable<LambdaListenerAdapter> listeners) {
             this.owner = owner;
             this.listeners = listeners;
         }
 
         @Override
-        public CmdListening beforeStart(BeforeStart... lambdas) {
-            return new Listening(
+        public Listening beforeStart(BeforeStart... lambdas) {
+            return new CmdListening(
                     owner,
                     new Joined<>(
                             this.listeners,
@@ -108,8 +109,8 @@ public final class Cmd implements ICmd {
         }
 
         @Override
-        public CmdListening afterStart(AfterStart... lambdas) {
-            return new Listening(
+        public Listening afterStart(AfterStart... lambdas) {
+            return new CmdListening(
                     owner,
                     new Joined<>(
                             this.listeners,
@@ -118,8 +119,8 @@ public final class Cmd implements ICmd {
         }
 
         @Override
-        public CmdListening afterFinish(AfterFinish... lambdas) {
-            return new Listening(
+        public Listening afterFinish(AfterFinish... lambdas) {
+            return new CmdListening(
                     owner,
                     new Joined<>(
                             this.listeners,
@@ -128,8 +129,8 @@ public final class Cmd implements ICmd {
         }
 
         @Override
-        public CmdListening afterStop(AfterStop... lambdas) {
-            return new Listening(
+        public Listening afterStop(AfterStop... lambdas) {
+            return new CmdListening(
                     owner,
                     new Joined<>(
                             this.listeners,
@@ -140,6 +141,43 @@ public final class Cmd implements ICmd {
         @Override
         public Cmd back() {
             return new Cmd(this, owner.beforeStart, owner.interpreter);
+        }
+    }
+
+    private static final class BaseCommand implements Command {
+        private final ProcessExecutor processExecutor;
+
+        BaseCommand(ProcessExecutor processExecutor) {
+            this.processExecutor = processExecutor;
+        }
+
+        /**
+         * See {@link ProcessExecutor#execute()}
+         */
+        @Override
+        public ProcessResult execute() throws IOException, TimeoutException, InterruptedException {
+            return processExecutor.execute();
+        }
+
+        /**
+         * See {@link ProcessExecutor#executeNoTimeout()}
+         */
+        @Override
+        public ProcessResult executeNoTimeout() throws IOException, InterruptedException {
+            return processExecutor.executeNoTimeout();
+        }
+
+        /**
+         * See {@link ProcessExecutor#start()}
+         */
+        @Override
+        public StartedProcess start() throws IOException {
+            return processExecutor.start();
+        }
+
+        @Override
+        public List<String> commandLine() {
+            return processExecutor.getCommand();
         }
     }
 }

@@ -1,8 +1,8 @@
 package com.enot.cmd.listeners;
 
 import com.enot.cmd.core.LambdaListenerAdapter;
-import com.enot.cmd.core.LambdaListenerAdapter.AfterStop;
-import com.enot.cmd.core.LambdaListenerAdapter.BeforeStart;
+import com.enot.cmd.core.listening.AfterStop;
+import com.enot.cmd.core.listening.BeforeStart;
 import org.apache.commons.io.FileUtils;
 import org.zeroturnaround.exec.ProcessExecutor;
 

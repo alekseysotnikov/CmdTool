@@ -1,5 +1,9 @@
 package com.enot.cmd.core;
 
+import com.enot.cmd.core.listening.AfterFinish;
+import com.enot.cmd.core.listening.AfterStart;
+import com.enot.cmd.core.listening.AfterStop;
+import com.enot.cmd.core.listening.BeforeStart;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
 import org.zeroturnaround.exec.listener.ProcessListener;
@@ -53,31 +57,4 @@ public class LambdaListenerAdapter extends ProcessListener {
         afterStop.run(process);
     }
 
-    /**
-     * See {@link ProcessListener#beforeStart(ProcessExecutor)}
-     */
-    public interface BeforeStart {
-        void run(ProcessExecutor executor);
-    }
-
-    /**
-     * See {@link ProcessListener#afterStart(Process, ProcessExecutor)}
-     */
-    public interface AfterStart {
-        void run(Process process, ProcessExecutor executor);
-    }
-
-    /**
-     * See {@link ProcessListener#afterFinish(Process, ProcessResult)}
-     */
-    public interface AfterFinish {
-        void run(Process process, ProcessResult result);
-    }
-
-    /**
-     * See {@link ProcessListener#afterStop(Process)}
-     */
-    public interface AfterStop {
-        void run(Process process);
-    }
 }
