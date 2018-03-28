@@ -1,6 +1,7 @@
 package com.enot.cmd;
 
 import com.enot.cmd.core.Cmd;
+import com.enot.cmd.core.Listening;
 import com.enot.cmd.listeners.CleanUp;
 import com.enot.cmd.listeners.RedirectToFile;
 import com.enot.cmd.listeners.RedirectTo;
@@ -104,9 +105,9 @@ public class CmdTest {
                         .configuring(
                                 new WorkDir(workDir),
                                 new CleanUp()
-                        ).listening().afterStop(process -> {
+                        ).listening((Listening.AfterStop) process -> {
                             assertTrue("Work directory has to be exist for listeners", workDir.exists());
-                        }).back()
+                        })
                         .command("echo", "hello world")
                         .execute()
                         .getExitValue()),
@@ -138,14 +139,12 @@ public class CmdTest {
         final String message = "line1";
         assertThat(true, allOf(
                 is(0 == new Cmd()
-                        .listening()
-                        .beforeStart(new RedirectTo(new LogOutputStream() {
+                        .listening(new RedirectTo(new LogOutputStream() {
                             @Override
                             protected void processLine(String line) {
                                 lines.add(line);
                             }
                         }))
-                        .back()
                         .command("echo", message)
                         .execute()
                         .getExitValue()),

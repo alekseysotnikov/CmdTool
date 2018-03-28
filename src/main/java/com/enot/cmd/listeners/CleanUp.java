@@ -1,8 +1,7 @@
 package com.enot.cmd.listeners;
 
-import com.enot.cmd.core.LambdaListenerAdapter;
-import com.enot.cmd.core.listening.AfterStop;
-import com.enot.cmd.core.listening.BeforeStart;
+import com.enot.cmd.core.ProcessListenerAdapter;
+import com.enot.cmd.core.Listening;
 import org.apache.commons.io.FileUtils;
 import org.zeroturnaround.exec.ProcessExecutor;
 
@@ -13,13 +12,13 @@ import java.io.UncheckedIOException;
 /**
  * Deletes work directory after process stopped
  */
-public final class CleanUp implements BeforeStart, AfterStop {
+public final class CleanUp implements Listening.BeforeStart, Listening.AfterStop {
     private File dir;
 
     @Override
     public void run(ProcessExecutor processExecutor) {
         dir = processExecutor.getDirectory();
-        processExecutor.addListener(new LambdaListenerAdapter((AfterStop) this));
+        processExecutor.addListener(new ProcessListenerAdapter((Listening.AfterStop) this));
     }
 
     @Override

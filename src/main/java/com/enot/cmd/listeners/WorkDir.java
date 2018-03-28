@@ -1,6 +1,6 @@
 package com.enot.cmd.listeners;
 
-import com.enot.cmd.core.listening.BeforeStart;
+import com.enot.cmd.core.Listening;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import java.io.File;
@@ -10,7 +10,7 @@ import java.io.UncheckedIOException;
 /**
  * Creates working directory if it does not exists
  */
-public final class WorkDir implements BeforeStart{
+public final class WorkDir implements Listening.BeforeStart {
     private final File dir;
 
     public WorkDir(String path) {

@@ -1,6 +1,5 @@
 package com.enot.cmd.core;
 
-import com.enot.cmd.core.listening.*;
 import org.cactoos.iterable.IterableOf;
 import org.cactoos.iterable.Joined;
 import org.cactoos.iterable.Mapped;
@@ -20,33 +19,72 @@ import java.util.stream.Collectors;
  * Command line representation with the additional features around a process execution
  */
 public final class Cmd implements ICmd {
-    private final CmdListening cmdListening;
-    private final BeforeStart[] beforeStart;
+    private final Iterable<ProcessListenerAdapter> listeners;
+    private final Listening.BeforeStart[] configuring;
     private final String interpreter;
 
     public Cmd() {
-        this(new CmdListening(null, new IterableOf<>()), new BeforeStart[0], "");
+        this(new IterableOf<>(), new Listening.BeforeStart[0], "");
     }
 
-    public Cmd(CmdListening cmdListening, BeforeStart[] beforeStart, String interpreter) {
-        this.cmdListening = cmdListening;
-        this.beforeStart = beforeStart;
+    public Cmd(Iterable<ProcessListenerAdapter> listeners, Listening.BeforeStart[] configuring, String interpreter) {
+        this.listeners = listeners;
+        this.configuring = configuring;
         this.interpreter = interpreter;
     }
 
     @Override
-    public Cmd configuring(BeforeStart... configuring) {
-        return new Cmd(cmdListening, configuring, interpreter);
+    public Cmd configuring(Listening.BeforeStart... configuring) {
+        return new Cmd(listeners, configuring, interpreter);
     }
 
     @Override
-    public Listening listening() {
-        return new CmdListening(this, cmdListening.listeners);
+    public ICmd listening(Listening.BeforeStart... beforeStart) {
+        return new Cmd(
+                new Joined<>(
+                        this.listeners,
+                        new Mapped<>(ProcessListenerAdapter::new,
+                                new IterableOf<>(beforeStart))),
+                configuring,
+                interpreter);
+    }
+
+    @Override
+    public ICmd listening(Listening.AfterStart... afterStart) {
+        return new Cmd(
+                new Joined<>(
+                        this.listeners,
+                        new Mapped<>(ProcessListenerAdapter::new,
+                                new IterableOf<>(afterStart))),
+                configuring,
+                interpreter);
+    }
+
+    @Override
+    public ICmd listening(Listening.AfterFinish... afterFinish) {
+        return new Cmd(
+                new Joined<>(
+                        this.listeners,
+                        new Mapped<>(ProcessListenerAdapter::new,
+                                new IterableOf<>(afterFinish))),
+                configuring,
+                interpreter);
+    }
+
+    @Override
+    public ICmd listening(Listening.AfterStop... afterStop) {
+        return new Cmd(
+                new Joined<>(
+                        this.listeners,
+                        new Mapped<>(ProcessListenerAdapter::new,
+                                new IterableOf<>(afterStop))),
+                configuring,
+                interpreter);
     }
 
     @Override
     public Cmd interpreter(String interpreter) {
-        return new Cmd(cmdListening, beforeStart, interpreter);
+        return new Cmd(listeners, configuring, interpreter);
     }
 
     public Command command(String... command) {
@@ -56,13 +94,13 @@ public final class Cmd implements ICmd {
     private ProcessExecutor processExecutor(String... command) {
         ProcessExecutor executor = new ProcessExecutor();
 
-        Map<Boolean, List<BeforeStart>> configuring = Arrays.stream(beforeStart).collect(
-                Collectors.groupingBy(c -> c instanceof AfterStop));
-        List<BeforeStart> configuringBefore = configuring.getOrDefault(false, Collections.emptyList());
-        List<BeforeStart> configuringAfter = configuring.getOrDefault(true, Collections.emptyList());
+        Map<Boolean, List<Listening.BeforeStart>> configuring = Arrays.stream(this.configuring).collect(
+                Collectors.groupingBy(c -> c instanceof Listening.AfterStop));
+        List<Listening.BeforeStart> configuringBefore = configuring.getOrDefault(false, Collections.emptyList());
+        List<Listening.BeforeStart> configuringAfter = configuring.getOrDefault(true, Collections.emptyList());
 
         configuringBefore.forEach(c -> c.run(executor));
-        cmdListening.listeners.forEach(executor::addListener);
+        listeners.forEach(executor::addListener);
         configuringAfter.forEach(c -> c.run(executor));
 
         Iterable<String> commands = new IterableOf<>(command);
@@ -70,78 +108,6 @@ public final class Cmd implements ICmd {
             commands = new Joined<>(new IterableOf<>(interpreter), commands);
         }
         return executor.command(commands);
-    }
-
-
-    private static final class CmdListening implements Listening {
-        private final Cmd owner;
-        private final Iterable<LambdaListenerAdapter> listeners;
-
-        public CmdListening(Cmd owner, BeforeStart... lambdas) {
-            this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
-        }
-
-        public CmdListening(Cmd owner, AfterStart... lambdas) {
-            this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
-        }
-
-        public CmdListening(Cmd owner, AfterFinish... lambdas) {
-            this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
-        }
-
-        public CmdListening(Cmd owner, AfterStop... lambdas) {
-            this(owner, new Mapped<>(LambdaListenerAdapter::new, new IterableOf<>(lambdas)));
-        }
-
-        public CmdListening(Cmd owner, Iterable<LambdaListenerAdapter> listeners) {
-            this.owner = owner;
-            this.listeners = listeners;
-        }
-
-        @Override
-        public Listening beforeStart(BeforeStart... lambdas) {
-            return new CmdListening(
-                    owner,
-                    new Joined<>(
-                            this.listeners,
-                            new Mapped<>(LambdaListenerAdapter::new,
-                                    new IterableOf<>(lambdas))));
-        }
-
-        @Override
-        public Listening afterStart(AfterStart... lambdas) {
-            return new CmdListening(
-                    owner,
-                    new Joined<>(
-                            this.listeners,
-                            new Mapped<>(LambdaListenerAdapter::new,
-                                    new IterableOf<>(lambdas))));
-        }
-
-        @Override
-        public Listening afterFinish(AfterFinish... lambdas) {
-            return new CmdListening(
-                    owner,
-                    new Joined<>(
-                            this.listeners,
-                            new Mapped<>(LambdaListenerAdapter::new,
-                                    new IterableOf<>(lambdas))));
-        }
-
-        @Override
-        public Listening afterStop(AfterStop... lambdas) {
-            return new CmdListening(
-                    owner,
-                    new Joined<>(
-                            this.listeners,
-                            new Mapped<>(LambdaListenerAdapter::new,
-                                    new IterableOf<>(lambdas))));
-        }
-
-        @Override
-        public Cmd back() {
-            return new Cmd(this, owner.beforeStart, owner.interpreter);
-        }
     }
 
     private static final class BaseCommand implements Command {

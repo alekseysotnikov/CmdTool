@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/alekseysotnikov/CmdTool.svg?branch=master)](https://travis-ci.org/alekseysotnikov/CmdTool) [![codecov](https://codecov.io/gh/alekseysotnikov/CmdTool/branch/master/graph/badge.svg)](https://codecov.io/gh/alekseysotnikov/CmdTool)
 
 ### Quick Overview
-Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around a process execution. Inspired by approach used in the [Cactoos](https://github.com/yegor256/cactoos) lib.
+Tiny, pure object-oriented, declarative and immutable wrapper of [zt-exec](https://github.com/zeroturnaround/zt-exec) with additional features around a process execution.
 
 Java 8+ required.
 
@@ -76,10 +76,11 @@ new Cmd()
                 new WorkDir("./foo"), // specify work directory ./foo (will be created automatically)
                 new CleanUp() // delete work directory after process stop, only if the Cmd has created the directory
         ) 
-        .listening().afterStop(process -> {
+        .listening((Listening.AfterStop) process -> {
             System.out.println(new File("./foo").exists()); //true
-        }).back()
-        .command("echo", "hello world").execute();
+        })
+        .command("echo", "hello world")
+        .execute();
 
 System.out.println(new File("./foo").exists()); // false
 ````

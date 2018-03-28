@@ -1,6 +1,6 @@
 package com.enot.cmd.listeners;
 
-import com.enot.cmd.core.listening.BeforeStart;
+import com.enot.cmd.core.Listening;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import java.io.OutputStream;
@@ -8,7 +8,7 @@ import java.io.OutputStream;
 /**
  * Redirect either output or error stream to another stream, even if the process stopped unexpectedly
  */
-public final class RedirectTo implements BeforeStart {
+public final class RedirectTo implements Listening.BeforeStart {
     private final OutputStream outputStream;
     private final boolean fromErrorStream;
 

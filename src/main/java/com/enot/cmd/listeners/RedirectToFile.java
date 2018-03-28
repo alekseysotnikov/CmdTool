@@ -1,8 +1,7 @@
 package com.enot.cmd.listeners;
 
-import com.enot.cmd.core.LambdaListenerAdapter;
-import com.enot.cmd.core.listening.BeforeStart;
-import com.enot.cmd.core.listening.AfterStop;
+import com.enot.cmd.core.ProcessListenerAdapter;
+import com.enot.cmd.core.Listening;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import java.io.File;
@@ -17,7 +16,7 @@ import java.nio.file.StandardOpenOption;
 /**
  * Saves either output or error stream into a file within the working directory, even if the process stopped unexpectedly
  */
-public final class RedirectToFile implements BeforeStart, AfterStop {
+public final class RedirectToFile implements Listening.BeforeStart, Listening.AfterStop {
     private final File outputFile;
     private final boolean fromErrorStream;
     private OutputStream outputStream;
@@ -44,7 +43,7 @@ public final class RedirectToFile implements BeforeStart, AfterStop {
         processExecutor.readOutput(true);
         outputStream = createFileOS(processExecutor.getDirectory());
         new RedirectTo(outputStream, fromErrorStream).run(processExecutor);
-        processExecutor.addListener(new LambdaListenerAdapter((AfterStop) this));
+        processExecutor.addListener(new ProcessListenerAdapter((Listening.AfterStop) this));
     }
 
     @Override

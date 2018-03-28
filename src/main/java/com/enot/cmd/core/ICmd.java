@@ -1,12 +1,15 @@
 package com.enot.cmd.core;
 
-import com.enot.cmd.core.listening.BeforeStart;
-import com.enot.cmd.core.listening.Listening;
-
 public interface ICmd {
-    ICmd configuring(BeforeStart... configuring);
+    ICmd configuring(Listening.BeforeStart... configuring);
 
-    Listening listening();
+    ICmd listening(Listening.BeforeStart... beforeStart);
+
+    ICmd listening(Listening.AfterStart... afterStart);
+
+    ICmd listening(Listening.AfterFinish... afterFinish);
+
+    ICmd listening(Listening.AfterStop... afterStop);
 
     /**
      * Specify command interpreter
@@ -15,6 +18,7 @@ public interface ICmd {
 
     /**
      * Create executable command
+     *
      * @param command
      * @return
      */
