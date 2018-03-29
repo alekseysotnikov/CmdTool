@@ -74,7 +74,7 @@ new Cmd()
 new Cmd()
         .configuring(
                 new WorkDir("./foo"), // specify work directory ./foo (will be created automatically)
-                new CleanUp() // delete work directory after process stop, only if the Cmd has created the directory
+                new CleanUp() // delete work directory after process stop
         ) 
         .listening((Listening.AfterStop) process -> {
             System.out.println(new File("./foo").exists()); //true
