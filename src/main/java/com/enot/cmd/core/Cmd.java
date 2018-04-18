@@ -87,6 +87,7 @@ public final class Cmd implements ICmd {
         return new Cmd(listeners, configuring, interpreter);
     }
 
+    @Override
     public Command command(String... command) {
         return new BaseCommand(processExecutor(command));
     }
