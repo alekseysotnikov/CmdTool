@@ -1,11 +1,11 @@
-package com.enot.cmd;
+package io.github.alekseysotnikov.cmd;
 
-import com.enot.cmd.core.Cmd;
-import com.enot.cmd.core.Listening;
-import com.enot.cmd.listeners.CleanUp;
-import com.enot.cmd.listeners.RedirectToFile;
-import com.enot.cmd.listeners.RedirectTo;
-import com.enot.cmd.listeners.WorkDir;
+import io.github.alekseysotnikov.cmd.core.Cmd;
+import io.github.alekseysotnikov.cmd.core.Listening;
+import io.github.alekseysotnikov.cmd.listeners.CleanUp;
+import io.github.alekseysotnikov.cmd.listeners.RedirectToFile;
+import io.github.alekseysotnikov.cmd.listeners.RedirectTo;
+import io.github.alekseysotnikov.cmd.listeners.WorkDir;
 import org.junit.Test;
 import org.zeroturnaround.exec.stream.LogOutputStream;
 

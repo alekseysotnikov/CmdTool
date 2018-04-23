@@ -1,6 +1,6 @@
-package com.enot.cmd.listeners;
+package io.github.alekseysotnikov.cmd.listeners;
 
-import com.enot.cmd.core.Listening;
+import io.github.alekseysotnikov.cmd.core.Listening;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import java.io.File;

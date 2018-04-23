@@ -20,8 +20,17 @@ All features of [zt-exec](https://github.com/zeroturnaround/zt-exec) are support
 - Create and clean up work directory automatically
 
 ### Download
+Include the dependency into your `pom.xml`
+````xml
+<dependency>
+  <groupId>io.github.alekseysotnikov</groupId>
+  <artifactId>CmdTool</artifactId>
+  <version>0.4.3</version>
+</dependency>
+````
+Or
 1. Get the [latest version here](https://github.com/alekseysotnikov/CmdTool/releases) with or without dependencies
-2. Dependencies
+2. Project uses the following dependencies
 ````xml
 <dependency>
   <groupId>org.zeroturnaround</groupId>

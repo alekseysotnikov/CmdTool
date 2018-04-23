@@ -1,4 +1,4 @@
-package com.enot.cmd.core;
+package io.github.alekseysotnikov.cmd.core;
 
 import org.cactoos.iterable.IterableOf;
 import org.cactoos.iterable.Joined;

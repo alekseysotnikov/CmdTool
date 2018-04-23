@@ -1,4 +1,4 @@
-package com.enot.cmd.core;
+package io.github.alekseysotnikov.cmd.core;
 
 import org.zeroturnaround.exec.ProcessResult;
 import org.zeroturnaround.exec.StartedProcess;

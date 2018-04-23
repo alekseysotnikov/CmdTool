@@ -1,7 +1,7 @@
-package com.enot.cmd.listeners;
+package io.github.alekseysotnikov.cmd.listeners;
 
-import com.enot.cmd.core.ProcessListenerAdapter;
-import com.enot.cmd.core.Listening;
+import io.github.alekseysotnikov.cmd.core.ProcessListenerAdapter;
+import io.github.alekseysotnikov.cmd.core.Listening;
 import org.apache.commons.io.FileUtils;
 import org.zeroturnaround.exec.ProcessExecutor;
 

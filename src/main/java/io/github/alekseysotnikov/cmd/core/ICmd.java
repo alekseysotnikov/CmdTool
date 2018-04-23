@@ -1,4 +1,4 @@
-package com.enot.cmd.core;
+package io.github.alekseysotnikov.cmd.core;
 
 public interface ICmd {
     ICmd configuring(Listening.BeforeStart... configuring);
