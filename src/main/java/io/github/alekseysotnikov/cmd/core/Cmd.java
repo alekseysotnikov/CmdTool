@@ -34,7 +34,7 @@ public final class Cmd implements ICmd {
     }
 
     @Override
-    public Cmd configuring(Listening.BeforeStart... configuring) {
+    public ICmd configuring(Listening.BeforeStart... configuring) {
         return new Cmd(listeners, configuring, interpreter);
     }
 
@@ -83,7 +83,7 @@ public final class Cmd implements ICmd {
     }
 
     @Override
-    public Cmd interpreter(String interpreter) {
+    public ICmd interpreter(String interpreter) {
         return new Cmd(listeners, configuring, interpreter);
     }
 

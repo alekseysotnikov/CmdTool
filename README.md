@@ -25,7 +25,7 @@ Include the dependency into your `pom.xml`
 <dependency>
   <groupId>io.github.alekseysotnikov</groupId>
   <artifactId>CmdTool</artifactId>
-  <version>0.4.3</version>
+  <version>1.0.0</version>
 </dependency>
 ````
 Or
@@ -41,7 +41,7 @@ Or
 <dependency>
   <groupId>org.cactoos</groupId>
   <artifactId>cactoos</artifactId>
-  <version>0.29</version>
+  <version>0.30</version>
 </dependency>
 ````
 ### Examples
@@ -74,7 +74,9 @@ System.out.println(output);
 > Save an output stream into a file, even if the process stopped unexpectedly
 ```java
 new Cmd()
-      .configuring(new RedirectToFile("./output.txt"))
+      .configuring(
+              RedirectToFile.fromOutputStream("./output.txt"),
+              RedirectToFile.fromErrorStream("./errOutput.txt"))
       .command("echo", "Hello")
       .execute();
 ````
@@ -88,7 +90,7 @@ new Cmd()
         .listening((Listening.AfterStop) process -> {
             System.out.println(new File("./foo").exists()); //true
         })
-        .command("echo", "hello world")
+        .command("echo", "Hello")
         .execute();
 
 System.out.println(new File("./foo").exists()); // false

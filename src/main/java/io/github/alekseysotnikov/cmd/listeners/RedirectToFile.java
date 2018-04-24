@@ -21,6 +21,14 @@ public final class RedirectToFile implements Listening.BeforeStart, Listening.Af
     private final boolean fromErrorStream;
     private OutputStream outputStream;
 
+    public static RedirectToFile fromOutputStream(String path){
+        return new RedirectToFile(path);
+    }
+
+    public static RedirectToFile fromErrorStream(String path){
+        return new RedirectToFile(path, true);
+    }
+
     public RedirectToFile(String path) {
         this(new File(path), false);
     }

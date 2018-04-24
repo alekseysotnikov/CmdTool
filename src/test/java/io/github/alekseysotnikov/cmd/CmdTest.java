@@ -3,14 +3,15 @@ package io.github.alekseysotnikov.cmd;
 import io.github.alekseysotnikov.cmd.core.Cmd;
 import io.github.alekseysotnikov.cmd.core.Listening;
 import io.github.alekseysotnikov.cmd.listeners.CleanUp;
-import io.github.alekseysotnikov.cmd.listeners.RedirectToFile;
 import io.github.alekseysotnikov.cmd.listeners.RedirectTo;
+import io.github.alekseysotnikov.cmd.listeners.RedirectToFile;
 import io.github.alekseysotnikov.cmd.listeners.WorkDir;
 import org.junit.Test;
 import org.zeroturnaround.exec.stream.LogOutputStream;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -117,19 +118,21 @@ public class CmdTest {
 
     @Test
     public void outputFile() throws Exception {
-        final String outputPath = "./test.output";
-        final File workDir = generateRandomPath().toFile();
+        final String outputFile = "./test.output";
+        final Path workDirPath = generateRandomPath();
+        final String FILE_CONTENT = "hello world";
         assertThat(true, allOf(
-                is(not(workDir.exists())),
+                is(Files.notExists(workDirPath)),
                 is(0 == new Cmd()
                         .configuring(
-                                new WorkDir(workDir),
-                                new RedirectToFile(outputPath)
+                                new WorkDir(workDirPath.toFile()),
+                                RedirectToFile.fromOutputStream(outputFile)
                         )
-                        .command("echo", "hello world")
+                        .command("echo", FILE_CONTENT)
                         .execute()
                         .getExitValue()),
-                is(new File(workDir, outputPath).exists())
+                is(Files.exists(workDirPath.resolve(outputFile))),
+                is((FILE_CONTENT + "\n").equals(new String(Files.readAllBytes(workDirPath.resolve(outputFile)))))
         ));
     }
 
