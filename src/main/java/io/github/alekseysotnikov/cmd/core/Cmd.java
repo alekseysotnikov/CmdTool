@@ -92,7 +92,16 @@ public final class Cmd implements ICmd {
         return new BaseCommand(processExecutor(command));
     }
 
+    @Override
+    public Command command(Iterable<String> command) {
+        return new BaseCommand(processExecutor(command));
+    }
+
     private ProcessExecutor processExecutor(String... command) {
+        return processExecutor(new IterableOf<>(command));
+    }
+
+    private ProcessExecutor processExecutor(Iterable<String> command) {
         ProcessExecutor executor = new ProcessExecutor();
 
         Map<Boolean, List<Listening.BeforeStart>> configuring = Arrays.stream(this.configuring).collect(
@@ -104,11 +113,10 @@ public final class Cmd implements ICmd {
         listeners.forEach(executor::addListener);
         configuringAfter.forEach(c -> c.run(executor));
 
-        Iterable<String> commands = new IterableOf<>(command);
         if (interpreter != null && !interpreter.trim().isEmpty()) {
-            commands = new Joined<>(new IterableOf<>(interpreter), commands);
+            command = new Joined<>(new IterableOf<>(interpreter), command);
         }
-        return executor.command(commands);
+        return executor.command(command);
     }
 
     private static final class BaseCommand implements Command {

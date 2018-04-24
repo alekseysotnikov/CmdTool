@@ -4,7 +4,7 @@
     <groupId>io.github.alekseysotnikov</groupId>
     <artifactId>CmdTool</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>CmdTool</name>
     <description>Intended to execute console commands and scripts from Java easily</description>
     <developers>
@@ -53,7 +53,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.7</version>
-                <configuration><
+                <configuration>
                     <formats>
                         <format>html</format>
                         <format>xml</format>

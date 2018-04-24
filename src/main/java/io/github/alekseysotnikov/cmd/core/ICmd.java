@@ -20,7 +20,15 @@ public interface ICmd {
      * Create executable command
      *
      * @param command
-     * @return
+     * @return executable command
      */
     Command command(String... command);
+
+    /**
+     * Create executable command
+     *
+     * @param command
+     * @return executable command
+     */
+    Command command(Iterable<String> command);
 }

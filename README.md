@@ -25,7 +25,7 @@ Include the dependency into your `pom.xml`
 <dependency>
   <groupId>io.github.alekseysotnikov</groupId>
   <artifactId>CmdTool</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ````
 Or
